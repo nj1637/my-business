@@ -594,7 +594,7 @@
                                 <option value="last_month">Last Month</option>
                             </select>
                         </div>
-                    </div>
+                    
                     
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
                         <div style="background:linear-gradient(135deg,#065f46 0%,#0d2d22 100%);border-radius:18px;padding:24px;grid-column:span 2;display:flex;flex-direction:column;justify-content:center;box-shadow:0 8px 32px rgba(6,95,70,0.25);border:1px solid rgba(16,185,129,0.2);position:relative;overflow:hidden" class="col-span-2">
@@ -667,7 +667,8 @@
                     </div>
                 </div>
 
-                <!-- Daybook / General Journal View -->
+                
+<!-- Daybook / General Journal View -->
                 <div id="view-daybook" class="tab-content w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div>
@@ -677,7 +678,7 @@
                         <div class="flex gap-2">
                             <input type="date" id="daybook-date" onchange="window.renderDaybook()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-emerald-500 shadow-sm bg-white">
                         </div>
-                    </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                             <div class="text-xs font-bold text-emerald-600 uppercase mb-1">Total Inflow</div>
@@ -704,7 +705,9 @@
                     </div>
                 </div>
 
-                <!-- Smart Invoice Engine -->
+                
+                </div>
+<!-- Smart Invoice Engine -->
                 <div id="view-invoice" class="tab-content w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div>
@@ -715,7 +718,7 @@
                             <button onclick="saveInvoice('draft')" class="flex-1 md:flex-none px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-emerald-100 transition-all"><i data-lucide="save" class="w-4 h-4"></i> Save Draft</button>
                             <button onclick="saveInvoice('final')" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"><i data-lucide="check-circle" class="w-4 h-4"></i> Finalize</button>
                         </div>
-                    </div>
+                    
 
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-wrap gap-4 items-center justify-between" id="wrap-multidoc">
                         <div class="flex gap-4 items-center">
@@ -830,7 +833,9 @@
                     </div>
                 </div>
 
-                <!-- Purchases & Expenses View -->
+                
+                </div>
+<!-- Purchases & Expenses View -->
                 <div id="view-expenses" class="tab-content w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div class="w-full md:w-auto">
@@ -838,7 +843,7 @@
                             <p class="text-slate-400" style="font-size:13px">Track vendors, outward payments, and Input Tax Credit (ITC).</p>
                         </div>
                         <button onclick="toggleExpenseModal(true)" class="w-full md:w-auto px-4 py-2 bg-red-600 text-white rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-red-700 shadow-lg shadow-red-200 transition-all"><i data-lucide="minus-circle" class="w-4 h-4"></i> Log Expense</button>
-                    </div>
+                    
 
                     <div id="add-expense-form" class="hidden bg-red-50 border border-red-200 rounded-2xl p-4 md:p-6 mb-6 shadow-sm">
                         <h3 class="font-bold mb-4 text-red-800 flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5"></i> Log New Purchase / Expense</h3>
@@ -876,7 +881,9 @@
                     </div>
                 </div>
 
-                <!-- Inventory View -->
+                
+                </div>
+<!-- Inventory View -->
                 <div id="view-inventory" class="tab-content w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div class="w-full md:w-auto">
@@ -891,7 +898,7 @@
                             <button onclick="window.exportInventoryCSV()" class="flex-1 md:flex-none px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-slate-50 transition-all"><i data-lucide="download" class="w-4 h-4"></i> Export CSV</button>
                             <button onclick="toggleProductModal(true)" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"><i data-lucide="plus" class="w-4 h-4"></i> Add Product</button>
                         </div>
-                    </div>
+                    
                     <div id="add-product-form" class="hidden" style="position:fixed;inset:0;z-index:600;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px">
                     <div style="background:white;border-radius:24px;width:100%;max-width:620px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,0.3);overflow:hidden">
                         <!-- Modal Header -->
@@ -1024,7 +1031,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="inventory-list"></div>
                 </div>
 
-                <!-- Records View -->
+                
+                </div>
+<!-- Records View -->
                 <div id="view-records" class="tab-content w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div>
@@ -1038,7 +1047,7 @@
                             <button onclick="exportCSV()" class="px-4 py-2 bg-white text-emerald-700 border border-emerald-200 rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-emerald-50"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> CSV</button>
                             <button onclick="bulkExportPDF()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-200"><i data-lucide="download" class="w-4 h-4"></i> Bulk PDF</button>
                         </div>
-                    </div>
+                    
 
                     <div class="bg-emerald-800 text-white p-4 rounded-2xl mb-4 flex justify-between items-center shadow-lg">
                         <div><div class="text-emerald-200 text-xs font-bold uppercase tracking-wider">Filtered Tax Collection</div><div class="text-sm">Total GST collected in view (Net of returns)</div></div>
@@ -1069,7 +1078,9 @@
                     </div>
                 </div>
 
-                <!-- Clients View -->
+                
+                </div>
+<!-- Clients View -->
                 <div id="view-clients" class="tab-content w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div class="w-full md:w-auto">
@@ -1081,7 +1092,7 @@
                             <button onclick="window.exportClientsCSV()" class="flex-1 md:flex-none px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-slate-50 transition-all"><i data-lucide="download" class="w-4 h-4"></i> Export CSV</button>
                             <button onclick="window.toggleClientModal(true, true)" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium flex justify-center items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all"><i data-lucide="user-plus" class="w-4 h-4"></i> Add Client</button>
                         </div>
-                    </div>
+                    
                     <div id="edit-client-form" class="hidden" style="position:fixed;inset:0;z-index:600;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px">
                     <div style="background:white;border-radius:24px;width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,0.3);overflow:hidden">
 
@@ -1197,7 +1208,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="clients-list"></div>
                 </div>
 
-                <!-- Settings View -->
+                
+                </div>
+<!-- Settings View -->
                 <div id="view-settings" class="tab-content w-full">
 
                     <!-- Settings Header - Business Profile Card -->
@@ -1210,7 +1223,7 @@
                             <button onclick="window.saveSettings()" class="btn-primary"><i data-lucide="save" style="width:15px;height:15px"></i> Save All Settings</button>
                             <button onclick="window.handleLogout()" style="padding:9px 16px;background:#fef2f2;color:#dc2626;border:1.5px solid #fee2e2;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px"><i data-lucide="log-out" style="width:14px;height:14px"></i> Sign Out</button>
                         </div>
-                    </div>
+
 
                     <!-- Profile Banner Card -->
                     <div style="background:linear-gradient(135deg,#065f46 0%,#0d2d22 100%);border-radius:20px;padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;border:1px solid rgba(16,185,129,0.2)">
@@ -1551,68 +1564,17 @@
                             </div>
                         </div>
 
-                        <div class="settings-section space-y-4">
-                            <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Business Profile</h3>
-                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Business Name</label><input type="text" id="set-biz-name" class="form-input"></div>
-                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Business GSTIN</label><input type="text" id="set-biz-gstin" class="form-input"></div>
-                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Registered Address</label><input type="text" id="set-biz-address" class="form-input"></div>
-                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Contact Phone</label><input type="text" id="set-biz-phone" class="form-input"></div>
-                            <div><label class="text-sm font-medium text-slate-700 block mb-1">UPI Payment ID (For True QR Code)</label><input type="text" id="set-biz-upi" class="form-input" placeholder="example@upi"></div>
-                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Global Invoice Footer / T&C</label><textarea id="set-biz-terms" rows="2" class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none resize-none" placeholder="Thank you for your business..."></textarea></div>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div class="settings-section space-y-4">
-                                <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Bank Details (Prints on Invoice)</h3>
-                                <div><label class="text-sm font-medium text-slate-700 block mb-1">Bank Name</label><input type="text" id="set-bank-name" class="form-input" placeholder="e.g. State Bank of India"></div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="text-sm font-medium text-slate-700 block mb-1">Account No.</label><input type="text" id="set-bank-acc" class="form-input"></div>
-                                    <div><label class="text-sm font-medium text-slate-700 block mb-1">IFSC Code</label><input type="text" id="set-bank-ifsc" class="form-input"></div>
-                                </div>
-                            </div>
-
-                            <div class="settings-section space-y-4">
-                                <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Branding & Assets</h3>
-                                <div>
-                                    <label class="text-sm font-medium text-slate-700 block mb-1">Invoice Header Display Style</label>
-                                    <select id="set-biz-logo-display" class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none bg-white mb-4">
-                                        <option value="both">Show Both Logo & Business Name</option><option value="logo">Show Logo Only</option><option value="name">Show Business Name Only</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <div class="w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center overflow-hidden" id="logo-preview"><i data-lucide="image" class="text-slate-300"></i></div>
-                                    <div class="flex-1"><label class="text-sm font-medium text-slate-700 block mb-1">Upload Logo</label><input type="file" accept="image/*" onchange="window.handleImageUpload(event, 'logo')" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"></div>
-                                </div>
-                                <div class="flex items-center gap-4 pt-2 border-t border-slate-100 mt-4">
-                                    <div class="w-24 h-12 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center overflow-hidden" id="sig-preview"><i data-lucide="pen-tool" class="text-slate-300"></i></div>
-                                    <div class="flex-1"><label class="text-sm font-medium text-slate-700 block mb-1">Upload Signature</label><input type="file" accept="image/*" onchange="window.handleImageUpload(event, 'signature')" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"></div>
-                                </div>
-                                <div class="flex items-center gap-4 pt-2 border-t border-slate-100 mt-4">
-                                    <div class="w-16 h-16 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center overflow-hidden" id="seal-preview"><i data-lucide="award" class="text-slate-300"></i></div>
-                                    <div class="flex-1"><label class="text-sm font-medium text-slate-700 block mb-1">Round Company Seal</label><input type="file" accept="image/*" onchange="window.handleImageUpload(event, 'seal')" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="settings-section space-y-4">
-                                <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">PDF Layout Template (8 Formats)</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <button onclick="window.setTemplate('modern')" id="tpl-modern" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm">Modern</div></button>
-                                    <button onclick="window.setTemplate('classic')" id="tpl-classic" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm">Classic</div></button>
-                                    <button onclick="window.setTemplate('minimal')" id="tpl-minimal" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm">Minimal</div></button>
-                                    <button onclick="window.setTemplate('compact')" id="tpl-compact" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm">Compact</div></button>
-                                    <button onclick="window.setTemplate('elegant')" id="tpl-elegant" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm font-serif">Elegant</div></button>
-                                    <button onclick="window.setTemplate('bold')" id="tpl-bold" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm uppercase">Bold</div></button>
-                                    <button onclick="window.setTemplate('nature')" id="tpl-nature" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm text-green-700">Nature</div></button>
-                                    <button onclick="window.setTemplate('corporate')" id="tpl-corporate" class="p-2 border rounded-xl text-center border-slate-200 hover:border-emerald-300 bg-white"><div class="font-bold text-slate-800 text-sm text-blue-800">Corporate</div></button>
-                                </div>
-                            </div>
-                            <button onclick="window.saveSettings()" class="btn-primary w-full justify-center"><i data-lucide="save" class="w-5 h-5"></i> Save All Settings</button>
-                        </div>
+                        
+                </div>
+Save All Settings</button>
+                        
                     </div>
                 </div>
             </div>
         
-            </main>
+            
+                </div>
+</main>
         </div>
 
         <!-- Mobile Bottom Nav -->
