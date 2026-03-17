@@ -954,6 +954,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
       <div class="flex items-center gap-3"><div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center"><i data-lucide="layout-template" class="w-4 h-4 text-emerald-600"></i></div><div><div class="font-bold text-slate-800">Template Gallery</div><div class="text-xs text-slate-400">10 premium PDF templates</div></div></div>
       <button onclick="closeTemplateGallery()" class="btn btn-icon btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
+    <div class="border-b border-slate-100 px-5 pb-0 pt-3 flex gap-2 flex-wrap">
+      <button onclick="filterTemplates('all')" id="tpl-filter-all" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white transition-all">All</button>
+      <button onclick="filterTemplates('professional')" id="tpl-filter-professional" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Professional</button>
+      <button onclick="filterTemplates('creative')" id="tpl-filter-creative" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Creative</button>
+      <button onclick="filterTemplates('minimal')" id="tpl-filter-minimal" class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Minimal</button>
+    </div>
     <div class="modal-body p-5">
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4" id="tpl-gallery-grid"></div>
     </div>
@@ -1327,6 +1333,200 @@ async function shareInvoiceWA() {
         }, 500);
     }
 }
+
+
+// ================================================================
+// UNIVERSAL PDF & SHARE SYSTEM (Browser + WebView + APK safe)
+// ================================================================
+
+// ── PDF CORE: Generate as Blob (NOT data: URI — Android rejects data: URIs)
+async function generatePDFBlob(element, filename) {
+    if(!element || typeof html2pdf === 'undefined') return null;
+    try {
+        var blob = await html2pdf().set({
+            margin: 0,
+            filename: filename || 'invoice.pdf',
+            image: { type: 'jpeg', quality: 0.92 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(element).output('blob');
+        return blob;
+    } catch(e) {
+        console.error('PDF blob error:', e);
+        return null;
+    }
+}
+
+// Kept for WhatsApp base64 share
+async function generatePDFBase64(element, filename) {
+    if(!element || typeof html2pdf === 'undefined') return null;
+    try {
+        return await html2pdf().set({
+            margin: 0,
+            filename: filename || 'invoice.pdf',
+            image: { type: 'jpeg', quality: 0.92 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(element).output('datauristring');
+    } catch(e) { return null; }
+}
+
+// ── UNIVERSAL DOWNLOAD using Blob → object URL (NOT data: URI)
+// Android's DownloadManager rejects data: URIs but accepts blob: URLs
+async function downloadPDFBlob(blob, filename) {
+    if (!blob) return false;
+    try {
+        var blobUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            URL.revokeObjectURL(blobUrl);
+            if (a.parentNode) a.parentNode.removeChild(a);
+        }, 3000);
+        return true;
+    } catch (e) {
+        // Fallback: show PDF in full-screen overlay using DOM methods only
+        return new Promise(function (resolve) {
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+                try {
+                    // Build overlay using DOM - NO HTML strings
+                    var overlay = document.createElement('div');
+                    overlay.id = 'pdf-view-overlay';
+                    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#1e293b;display:flex;flex-direction:column';
+
+                    var header = document.createElement('div');
+                    header.style.cssText = 'padding:12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0';
+
+                    var title = document.createElement('span');
+                    title.style.cssText = 'color:white;font-weight:700;font-size:14px';
+                    title.textContent = filename;
+
+                    var closeBtn = document.createElement('button');
+                    closeBtn.style.cssText = 'background:#059669;color:white;border:none;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer';
+                    closeBtn.textContent = 'Close';
+                    closeBtn.onclick = function () {
+                        var el = document.getElementById('pdf-view-overlay');
+                        if (el) el.parentNode.removeChild(el);
+                    };
+
+                    var iframe = document.createElement('iframe');
+                    iframe.src = ev.target.result;
+                    iframe.style.cssText = 'flex:1;border:none;width:100%';
+
+                    header.appendChild(title);
+                    header.appendChild(closeBtn);
+                    overlay.appendChild(header);
+                    overlay.appendChild(iframe);
+                    document.body.appendChild(overlay);
+                    resolve(true);
+                } catch (e2) { resolve(false); }
+            };
+            reader.onerror = function () { resolve(false); };
+            reader.readAsDataURL(blob);
+        });
+    }
+}
+
+// ── DOWNLOAD PDF ──
+window.downloadPDF = async function() {
+    var element = document.getElementById('invoice-render-area');
+    if(!element) return;
+    var invEl = element.querySelector('.inv-id-tracker');
+    var invId = invEl ? (invEl.dataset.id || 'invoice') : 'invoice';
+
+    window.showToast && window.showToast('PDF बन रही है...');
+    var blob = await generatePDFBlob(element, invId + '.pdf');
+    if(!blob) {
+        window.showToast && window.showToast('PDF error!', 'error');
+        return;
+    }
+    await downloadPDFBlob(blob, invId + '.pdf');
+    window.showToast && window.showToast('PDF downloaded! ✅');
+};
+
+// ── WHATSAPP SHARE ──
+async function shareInvoiceWA() {
+    var id = window._curInvId || window._currentViewInvoiceId;
+    if(!id) { window.showToast && window.showToast('Invoice खोलें पहले', 'error'); return; }
+    var inv = window.AppState && window.AppState.invoices.find(function(i){ return i.id === id; });
+    if(!inv) return;
+
+    var biz = (window.AppState.settings && window.AppState.settings.businessName) || 'Dev Ayurveda';
+    var fmt = window.formatCurrency || function(a){ return '₹' + Number(a).toFixed(2); };
+    var msg = '🌿 *' + biz + '*'
+        + '\n\nHello ' + inv.client.name + ','
+        + '\n\n📋 Invoice: *' + inv.id + '*'
+        + '\n📅 Date: ' + inv.date
+        + '\n💰 Amount: *' + fmt(inv.grandTotal, inv.currency) + '*'
+        + '\n' + (inv.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Payment Pending')
+        + '\n\nThank you! 🙏';
+
+    var mobile = inv.client && inv.client.mobile ? inv.client.mobile.replace(/\D/g, '') : '';
+    var num = mobile.length === 10 ? '91' + mobile : mobile;
+    
+    var area = document.getElementById('invoice-render-area');
+
+    // Step 1: Try Web Share API with PDF Blob (works on Android Chrome)
+    if(area && typeof html2pdf !== 'undefined' && navigator.share && navigator.canShare) {
+        try {
+            window.showToast && window.showToast('PDF बन रही है...');
+            var pdfBlob = await generatePDFBlob(area, id + '.pdf');
+            if(pdfBlob) {
+                var pdfFile = new File([pdfBlob], id + '.pdf', { type: 'application/pdf' });
+                if(navigator.canShare({ files: [pdfFile] })) {
+                    await navigator.share({ files: [pdfFile], text: msg });
+                    window.showToast && window.showToast('Shared! ✅');
+                    return;
+                }
+            }
+        } catch(e) {
+            if(e.name === 'AbortError') return;
+        }
+    }
+
+    // Step 2: Open WhatsApp with text + download PDF
+    var waUrl = 'https://wa.me/' + (num || '') + '?text=' + encodeURIComponent(msg);
+    window.location.href = waUrl;
+
+    // Download PDF after short delay
+    if(area) {
+        setTimeout(async function() {
+            var blob = await generatePDFBlob(area, id + '.pdf');
+            if(blob) {
+                await downloadPDFBlob(blob, id + '.pdf');
+                window.showToast && window.showToast('WhatsApp खुला + PDF download ✅', 'info');
+            }
+        }, 1000);
+    }
+}
+
+// ── CSV EXPORT using Blob (no data: URI)
+function downloadCSV(csvContent, filename) {
+    try {
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var blobUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = blobUrl; a.download = filename; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ URL.revokeObjectURL(blobUrl); if(a.parentNode) a.parentNode.removeChild(a); }, 2000);
+    } catch(e) {
+        // Fallback: data URI
+        var dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+        var a2 = document.createElement('a'); a2.href = dataUri; a2.download = filename;
+        document.body.appendChild(a2); a2.click(); setTimeout(function(){ a2.remove(); }, 1000);
+    }
+}
+
+// ── BULK PDF DOWNLOAD ──
+window.bulkDownloadReady = async function(element, filename) {
+    var blob = await generatePDFBlob(element, filename);
+    if(blob) await downloadPDFBlob(blob, filename);
+};
 
 // ── PRODUCT DRAWER ──
 window._editProdId = null;
@@ -2813,7 +3013,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const products = window.AppState.products; if(products.length === 0) return window.showToast("No products to export", "warning");
             const headers = "Name,Category,HSN,Cost,Rate,GST,Stock,Batch,Expiry\n";
             const rows = products.map(p => `"${p.name}","${p.category||''}","${p.hsn||''}",${p.cost||0},${p.rate},${p.gst||0},${p.stock||0},"${p.batch||''}","${p.expiry||''}"`).join("\n");
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' })); link.download = `Inventory.csv`; link.click();
+            downloadCSV(headers + rows, "Inventory.csv");
         }
 
         window.populateClientFilter = function() { 
@@ -2907,14 +3107,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const invoices = window.AppState.invoices; if(invoices.length === 0) return window.showToast("No data to export", "error");
             const headers = "Invoice ID,Doc Type,Date,Client Name,Phone,Subtotal,Tax,Discount,TDS,Grand Total,Status,Payment Status\n";
             const rows = invoices.map(i => `${i.id},${i.docType||'Tax Invoice'},${i.date},"${i.client.name || ''}",${i.client.mobile || ''},${i.subtotal},${i.totalTax},${i.discount},${i.tdsAmount||0},${i.grandTotal},${i.status},${i.paymentStatus||'unpaid'}`).join("\n");
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' })); link.download = `DevAyurveda_Sales.csv`; link.click();
+            downloadCSV(headers + rows, "DevAyurveda_Sales.csv");
         }
 
         window.exportClientsCSV = function() {
             const clients = window.AppState.clients; if(clients.length === 0) return window.showToast("No clients to export", "warning");
             const headers = "Name,Mobile,GSTIN,Address,General Notes\n";
             const rows = clients.map(c => `"${c.name||''}","${c.mobile||''}","${c.gstin||''}","${c.address||''}","${c.notes||''}"`).join("\n");
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' })); link.download = `Clients.csv`; link.click();
+            downloadCSV(headers + rows, "Clients.csv");
         }
 
         window.toggleClientModal = function(show, isNew = false) { 
@@ -3308,40 +3508,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var mod = document.getElementById('invoice-modal');
             if(mod) mod.classList.remove('open');
         }
-        window.downloadPDF = async function() {
-            window.showToast && window.showToast('Generating PDF...');
-            var element = document.getElementById('invoice-render-area');
-            if(!element) return;
-            var invEl = element.querySelector('.inv-id-tracker');
-            var invId = invEl ? invEl.dataset.id : 'invoice';
-            try {
-                var blob = await html2pdf().set({
-                    margin:0, filename:invId+'.pdf',
-                    image:{type:'jpeg',quality:0.95},
-                    html2canvas:{scale:3,useCORS:true,scrollY:0,logging:false},
-                    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-                }).from(element).output('blob');
-                // Try standard download
-                try {
-                    var url = URL.createObjectURL(blob);
-                    var a = document.createElement('a');
-                    a.href = url; a.download = invId+'.pdf';
-                    document.body.appendChild(a); a.click();
-                    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
-                    window.showToast && window.showToast('PDF downloaded!');
-                } catch(e2) {
-                    // WebView fallback: open as data URL
-                    var reader = new FileReader();
-                    reader.onload = function(ev) {
-                        var win = window.open('');
-                        if(win) { win.document.write('<iframe src="'+ev.target.result+'" width="100%" height="100%" style="border:none"></iframe>'); }
-                        else { window.location.href = ev.target.result; }
-                    };
-                    reader.readAsDataURL(blob);
-                    window.showToast && window.showToast('PDF opening...');
-                }
-            } catch(e) { window.showToast && window.showToast('PDF error: '+e.message,'error'); }
-        }
+        // downloadPDF handled by universal PDF system above
 
         window.generateInvoiceHTML = function(inv) {
             const s = window.AppState.settings; const tpl = s.template || 'modern'; const curr = inv.currency || 'INR';
@@ -3896,253 +4063,8 @@ var _eI = setInterval(function () {
 
 
 
-<!-- Template gallery - now in tpl-gallery-modal -->
-            <button onclick="closeTemplateGallery()" class="btn btn-icon btn-secondary"><i data-lucide="x" class="w-4 h-4"></i></button>
-        </div>
-        <!-- Filter tabs -->
-        <div class="px-6 py-3 border-b border-slate-100 flex gap-2 flex-wrap">
-            <button onclick="filterTemplates('all')" id="tpl-filter-all" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white transition-all">All Styles</button>
-            <button onclick="filterTemplates('professional')" id="tpl-filter-professional" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Professional</button>
-            <button onclick="filterTemplates('creative')" id="tpl-filter-creative" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Creative</button>
-            <button onclick="filterTemplates('minimal')" id="tpl-filter-minimal" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">Minimal</button>
-        </div>
-        <div class="modal-body p-6">
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4" id="template-gallery-grid"></div>
-            <!-- Features strip -->
-            <div class="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-100">
-                <div class="text-center"><div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-2"><i data-lucide="pen-tool" class="w-4 h-4 text-emerald-600"></i></div><div class="font-bold text-slate-800 text-sm">Digital Signature</div><div class="text-xs text-slate-400 mt-1">Handwritten-style signature on every document</div></div>
-                <div class="text-center"><div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i></div><div class="font-bold text-slate-800 text-sm">Auto-Stamping</div><div class="text-xs text-slate-400 mt-1">Company seal applied based on payment status</div></div>
-                <div class="text-center"><div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-2"><i data-lucide="zap" class="w-4 h-4 text-emerald-600"></i></div><div class="font-bold text-slate-800 text-sm">Lightning Export</div><div class="text-xs text-slate-400 mt-1">High-fidelity PDFs exported instantly</div></div>
-            </div>
-        </div>
-    </div>
-</div>
 
 
-<script>
-// ===== SPLIT PAYMENT FUNCTIONS =====
-function updateSplitBalance() {
-    const upi = parseFloat(document.getElementById('split-upi')?.value)||0;
-    const cash = parseFloat(document.getElementById('split-cash')?.value)||0;
-    const credit = parseFloat(document.getElementById('split-credit')?.value)||0;
-    const total = upi + cash + credit;
-    
-    const fmt = window.formatCurrency || (a=>'₹'+a.toFixed(2));
-    const totals = window.calculateInvoiceTotals ? window.calculateInvoiceTotals() : {grandTotal:0};
-    const grand = totals.grandTotal || 0;
-    
-    const remaining = grand - (upi + cash); // credit is "pending"
-    const pct = grand > 0 ? Math.min(100, ((upi+cash)/grand)*100) : 0;
-    
-    const entEl = document.getElementById('split-total-entered');
-    const invEl = document.getElementById('split-invoice-total');
-    const remEl = document.getElementById('split-remaining-amt');
-    const remLabel = document.getElementById('split-remaining-label');
-    const progress = document.getElementById('split-progress');
-    
-    if(entEl) entEl.textContent = fmt(upi+cash+credit, 'INR');
-    if(invEl) invEl.textContent = fmt(grand, 'INR');
-    if(remEl) {
-        const unpaidAmt = grand - upi - cash;
-        remEl.textContent = fmt(Math.max(0, unpaidAmt), 'INR');
-        remEl.style.color = unpaidAmt <= 0 ? '#059669' : '#d97706';
-    }
-    if(remLabel) remLabel.textContent = credit > 0 ? 'Credit Pending' : 'Remaining';
-    if(progress) {
-        progress.style.width = pct + '%';
-        progress.style.background = pct >= 100 ? '#059669' : '#3b82f6';
-    }
-    
-    // Store split data in draft
-    if(window.AppState && window.AppState.draft) {
-        window.AppState.draft.splitPayment = { upi, cash, credit };
-        window.AppState.draft.paymentStatus = (upi+cash) >= grand ? 'paid' : 'unpaid';
-    }
-}
-
-// ===== TEMPLATE GALLERY =====
-const TEMPLATES = [
-    {id:'modern', name:'Modern', accent:'Emerald', category:'professional', color:'#059669', bg:'#f0fdf4', preview:'clean top bar, dark table header'},
-    {id:'classic', name:'Classic', accent:'Gold', category:'professional', color:'#92400e', bg:'#fffbeb', preview:'timeless serif style'},
-    {id:'minimal', name:'Minimal', accent:'Slate', category:'minimal', color:'#475569', bg:'#f8fafc', preview:'clean lines, no clutter'},
-    {id:'compact', name:'Compact', accent:'Gray', category:'minimal', color:'#374151', bg:'#f9fafb', preview:'dense, space-efficient'},
-    {id:'elegant', name:'Elegant', accent:'Bronze', category:'creative', color:'#78350f', bg:'#fef3c7', preview:'centered serif layout'},
-    {id:'bold', name:'Bold', accent:'Crimson', category:'creative', color:'#dc2626', bg:'#fef2f2', preview:'high contrast, bold headers'},
-    {id:'nature', name:'Nature', accent:'Emerald', category:'creative', color:'#166534', bg:'#f0fdf4', preview:'organic green theme'},
-    {id:'corporate', name:'Corporate', accent:'Navy', category:'professional', color:'#1e3a8a', bg:'#eff6ff', preview:'formal blue, enterprise'},
-    {id:'ayurveda', name:'Ayurveda', accent:'Herbal', category:'creative', color:'#065f46', bg:'#ecfdf5', preview:'🌿 custom herbal theme'},
-    {id:'premium', name:'Premium', accent:'Gold', category:'professional', color:'#b45309', bg:'#fffbeb', preview:'⭐ luxury dark + gold'},
-];
-
-let _currentTplFilter = 'all';
-
-// openTemplateGallery - handled by new UI JS
-
-function filterTemplates(cat) {
-    _currentTplFilter = cat;
-    document.querySelectorAll('[id^="tpl-filter-"]').forEach(btn => {
-        const isCurrent = btn.id === 'tpl-filter-' + cat;
-        btn.className = `px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isCurrent ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`;
-    });
-    renderTemplateGallery();
-}
-
-function renderTemplateGallery() {
-    const grid = document.getElementById('template-gallery-grid');
-    if(!grid) return;
-    const currentTpl = window.AppState ? window.AppState.settings.template : 'modern';
-    const filtered = _currentTplFilter === 'all' ? TEMPLATES : TEMPLATES.filter(t => t.category === _currentTplFilter);
-    
-    grid.innerHTML = filtered.map(t => {
-        const isActive = currentTpl === t.id;
-        return `
-        <div onclick="selectTemplateFromGallery('${t.id}')" class="cursor-pointer group">
-            <div class="rounded-xl overflow-hidden border-2 transition-all ${isActive ? 'border-emerald-500 shadow-lg shadow-emerald-100' : 'border-slate-200 hover:border-emerald-300'}" style="aspect-ratio:0.7;">
-                <!-- Template Preview Thumbnail -->
-                <div class="w-full h-full flex flex-col" style="background:white;padding:8px;font-size:5px;">
-                    <div class="w-full h-2 mb-2 rounded-sm" style="background:${t.color};opacity:0.8;"></div>
-                    <div class="flex justify-between mb-2">
-                        <div class="flex flex-col gap-0.5">
-                            <div class="h-1 w-12 rounded" style="background:${t.color};opacity:0.6;"></div>
-                            <div class="h-0.5 w-8 bg-slate-200 rounded"></div>
-                            <div class="h-0.5 w-10 bg-slate-200 rounded"></div>
-                        </div>
-                        <div class="text-right flex flex-col items-end gap-0.5">
-                            <div class="h-1.5 w-8 rounded" style="background:${t.bg};border:0.5px solid ${t.color};"></div>
-                            <div class="h-0.5 w-6 bg-slate-200 rounded"></div>
-                        </div>
-                    </div>
-                    <div class="h-1 rounded mb-1" style="background:${t.color};"></div>
-                    <div class="flex flex-col gap-0.5 flex-1">
-                        <div class="h-0.5 w-full bg-slate-100 rounded"></div>
-                        <div class="h-0.5 w-full bg-slate-100 rounded"></div>
-                        <div class="h-0.5 w-3/4 bg-slate-100 rounded"></div>
-                    </div>
-                    <div class="flex justify-end mt-1">
-                        <div class="h-1.5 w-10 rounded" style="background:${t.color};opacity:0.7;"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-2 flex items-center justify-between px-0.5">
-                <div>
-                    <div class="font-bold text-slate-800 text-xs">${t.name}</div>
-                    <div class="text-[10px] text-slate-400">Accent: ${t.accent}</div>
-                </div>
-                ${isActive ? '<div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white text-[8px] font-bold">✓</div>' : ''}
-            </div>
-        </div>`;
-    }).join('');
-}
-
-function selectTemplateFromGallery(tplId) {
-    if(window.setTemplate) window.setTemplate(tplId);
-    // Update active state in gallery
-    const grid = document.getElementById('template-gallery-grid');
-    if(grid) renderTemplateGallery();
-    // Show toast
-    if(window.showToast) window.showToast('Template changed to ' + tplId.charAt(0).toUpperCase() + tplId.slice(1));
-    // If invoice modal is open, re-render
-    const modal = document.getElementById('invoice-modal');
-    if(modal && modal.classList.contains('open') && window._currentViewInvoiceId) {
-        window.viewInvoice(window._currentViewInvoiceId);
-    }
-}
-
-// WhatsApp invoice share with PDF
-async function shareInvoiceWhatsApp() {
-    const invId = window._currentViewInvoiceId;
-    if(!invId) { window.showToast&&window.showToast('पहले invoice खोलें','error'); return; }
-    const inv = window.AppState && window.AppState.invoices.find(i => i.id === invId);
-    if(!inv) return;
-
-    const mobile = inv.client && inv.client.mobile ? inv.client.mobile.replace(/\D/g,'') : '';
-    const bizName = (window.AppState.settings && window.AppState.settings.businessName) || 'Dev Ayurveda';
-    const fmt = window.formatCurrency || (a => '₹' + Number(a).toFixed(2));
-    const msg = '🌿 *' + bizName + '*'
-        + '
-
-नमस्ते ' + inv.client.name + ' जी,'
-        + '
-
-आपका *' + (inv.docType||'Invoice') + '* तैयार है।'
-        + '
-
-📋 Invoice No: *' + inv.id + '*'
-        + '
-📅 Date: ' + inv.date
-        + '
-💰 Amount: *' + fmt(inv.grandTotal, inv.currency) + '*'
-        + '
-' + (inv.paymentStatus==='paid' ? '✅ Paid' : '⏳ Payment Pending')
-        + '
-
-धन्यवाद! 🙏';
-
-    const num = (mobile.length === 10 ? '91' + mobile : mobile);
-    const waUrl = 'https://wa.me/' + (num||'') + '?text=' + encodeURIComponent(msg);
-    const area = document.getElementById('invoice-render-area');
-
-    // Try native share with PDF file (Android Chrome supports this)
-    if(area && typeof html2pdf !== 'undefined' && navigator.share && navigator.canShare) {
-        try {
-            window.showToast && window.showToast('PDF बन रही है...');
-            // Correct html2pdf v0.10.1 API: use .output() not .outputPdf()
-            const pdfBlob = await html2pdf()
-                .set({
-                    margin: 0,
-                    filename: invId + '.pdf',
-                    image: { type: 'jpeg', quality: 0.9 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                })
-                .from(area)
-                .output('blob');
-
-            const file = new File([pdfBlob], invId + '.pdf', { type: 'application/pdf' });
-
-            if(navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], text: msg });
-                window.showToast && window.showToast('Shared! ✅');
-                return;
-            }
-        } catch(e) {
-            if(e.name === 'AbortError') return; // user cancelled
-            // else fall through to fallback
-        }
-    }
-
-    // Fallback: open WhatsApp text + download PDF separately
-    window.open(waUrl, '_blank');
-    if(area && typeof html2pdf !== 'undefined') {
-        setTimeout(function() {
-            html2pdf().set({
-                margin: 0, filename: invId + '.pdf',
-                image: {type:'jpeg', quality:0.9},
-                html2canvas: {scale:2, useCORS:true},
-                jsPDF: {unit:'mm', format:'a4', orientation:'portrait'}
-            }).from(area).save();
-            window.showToast && window.showToast('PDF download हो रही है — WhatsApp में attach करें 📎', 'info');
-        }, 600);
-    }
-}
-
-// viewInvoice handled by new UI JS
-
-// Override setTemplate to also highlight gallery tpl button in settings
-const _prevSetTemplate = window.setTemplate;
-window.setTemplate = function(tpl) {
-    if(_prevSetTemplate) _prevSetTemplate(tpl);
-    // Highlight in settings
-    document.querySelectorAll('[id^="tpl-"]').forEach(btn => {
-        if(!btn.id.includes('filter')) {
-            const isActive = btn.id === 'tpl-' + tpl;
-            btn.style.borderColor = isActive ? '#10b981' : '';
-            btn.style.background = isActive ? '#ecfdf5' : '';
-            btn.style.color = isActive ? '#065f46' : '';
-        }
-    });
-};
-</script>
 
 <script>
 // ===== SERVICE WORKER REGISTRATION =====
@@ -4206,29 +4128,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script>
-// Invoice PDF mobile scaling
-function scaleInvoiceModal() {
-    var area = document.getElementById('invoice-render-area');
-    if(!area) return;
-    var modal = document.getElementById('invoice-modal');
-    if(!modal) return;
-    var containerW = modal.clientWidth - 32;
-    var A4_PX = 794;
-    if(containerW > 0 && containerW < A4_PX) {
-        var scale = containerW / A4_PX;
-        area.style.transform = 'scale(' + scale + ')';
-        area.style.transformOrigin = 'top left';
-        area.style.marginBottom = '-' + (A4_PX * (1 - scale)) + 'px';
-        area.style.width = A4_PX + 'px';
-    } else {
-        area.style.transform = '';
-        area.style.marginBottom = '';
-        area.style.width = '';
-    }
+// Template gallery filter
+function filterTemplates(cat) {
+    window._tplFilter = cat || 'all';
+    document.querySelectorAll('[id^="tpl-filter-"]').forEach(function(btn) {
+        var active = btn.id === 'tpl-filter-' + cat;
+        btn.className = active
+            ? 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white transition-all'
+            : 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';
+    });
+    // Re-render gallery with filter
+    if(window._renderTplGallery) window._renderTplGallery();
 }
-window.addEventListener('resize', scaleInvoiceModal);
-// Run when invoice modal opens
-var _origViewInv = window.viewInvoice;
 </script>
 </body>
 </html>
