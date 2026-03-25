@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Dev Ayurveda ERP</title>
+<title>My Business ERP</title>
 <meta name="theme-color" content="#059669">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -273,7 +273,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
       <i data-lucide="leaf" class="w-10 h-10 text-emerald-400"></i>
     </div>
     <div class="text-center">
-      <h1 class="text-3xl font-bold text-white tracking-tight">Dev Ayurveda</h1>
+      <h1 class="text-3xl font-bold text-white tracking-tight">My Business </h1>
       <p class="text-emerald-400 text-xs font-bold uppercase tracking-widest mt-1">Professional ERP</p>
     </div>
   </div>
@@ -307,12 +307,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
           <button type="submit" id="login-btn" class="btn btn-primary w-full justify-center py-2.5">
             <i data-lucide="log-in" class="w-4 h-4"></i> Sign In
           </button>
+          <div class="text-center mt-2">
+            <button type="button" onclick="showForgotPassword()" class="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors">Forgot Password?</button>
+          </div>
         </form>
-        <p class="text-center text-slate-400 text-sm mt-5">New? <button onclick="showSignup()" class="text-emerald-400 font-semibold">Create account</button></p>
+        <p class="text-center text-slate-400 text-sm mt-4">New? <button onclick="showSignup()" class="text-emerald-400 font-semibold">Create account</button></p>
         <!-- Signup -->
         <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-3 hidden mt-1">
           <div><label class="lbl text-slate-300">Business Name</label>
-            <input type="text" id="signup-biz-name" class="inp bg-white/5 border-white/10 text-white" placeholder="Dev Ayurveda"></div>
+            <input type="text" id="signup-biz-name" class="inp bg-white/5 border-white/10 text-white" placeholder="My Business "></div>
           <div><label class="lbl text-slate-300">Email</label>
             <input type="email" id="signup-email" required class="inp bg-white/5 border-white/10 text-white"></div>
           <div><label class="lbl text-slate-300">Password</label>
@@ -338,7 +341,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
 </div>
 
 <!-- TOAST -->
-<div id="toast-zone" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+<div id="toast-zone" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" id="toast-container"></div>
 
 <!-- APP -->
 <div id="app" class="w-full flex" style="display:none!important;height:100dvh;height:100vh;overflow:hidden">
@@ -347,7 +350,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
   <!-- PIN LOCK -->
-  <div id="pin-lock" class="fixed inset-0 z-[150] bg-slate-900/95 backdrop-blur-md hidden flex-col items-center justify-center">
+  <div id="pin-lock" class="fixed inset-0 z-[150] bg-slate-900/95 backdrop-blur-md" style="display:none;flex-direction:column;align-items:center;justify-content:center">
     <div class="bg-white rounded-2xl p-8 max-w-xs w-full mx-4 text-center shadow-2xl">
       <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
         <i data-lucide="lock" class="w-6 h-6"></i>
@@ -356,13 +359,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
       <p class="text-slate-500 text-sm mb-4">Enter 4-digit PIN</p>
       <div class="relative inline-flex items-center mb-4">
         <input type="password" id="pin-field" maxlength="4" placeholder="••••"
-          class="w-32 text-center text-2xl tracking-[.5em] pl-4 pr-10 py-3 rounded-xl border-2 border-slate-200 focus:border-emerald-500 bg-slate-50 outline-none">
+          class="w-32 text-center text-2xl tracking-[.5em] pl-4 pr-10 py-3 rounded-xl border-2 border-slate-200 focus:border-emerald-500 bg-slate-50 outline-none"
+          onkeydown="if(event.key==='Enter') verifyPin()">
         <button type="button" class="eye-btn absolute right-3" onclick="toggleEye('pin-field',this)">
           <i data-lucide="eye" class="w-4 h-4"></i>
         </button>
       </div>
       <button onclick="verifyPin()" class="btn btn-primary w-full justify-center">Unlock</button>
-      <p id="pin-error" class="text-red-500 text-sm mt-3 hidden">Incorrect PIN</p>
+      <p id="pin-error" class="text-red-500 text-sm mt-3 hidden">Incorrect PIN. Try again.</p>
+      <button type="button" onclick="showForgotPinModal()" class="text-slate-400 text-xs mt-4 hover:text-red-400 transition-colors w-full text-center block">
+        Forgot PIN? Unlock via Account Password
+      </button>
     </div>
   </div>
 
@@ -374,7 +381,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
           <i data-lucide="leaf" class="w-5 h-5 text-white"></i>
         </div>
         <div>
-          <div class="text-white font-bold text-sm leading-tight">Dev Ayurveda</div>
+          <div class="text-white font-bold text-sm leading-tight">My Business </div>
           <div class="text-emerald-500 text-[9px] font-bold uppercase tracking-widest">Modular Pro ERP</div>
         </div>
       </div>
@@ -410,6 +417,22 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
         </button>
         <button onclick="window.openFinancialReports&&openFinancialReports()" class="btn btn-icon btn-ghost" title="Reports">
           <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- QUOTA BANNER -->
+    <div id="quota-banner" class="hidden items-center justify-between gap-3 px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+        <p class="text-amber-800 text-xs font-semibold">Firebase quota limit approaching. Data saved locally — backup recommended.</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="window.downloadLocalBackup&&downloadLocalBackup()" class="btn btn-sm bg-amber-500 text-white border-0 hover:bg-amber-600">
+          <i data-lucide="download" class="w-3 h-3"></i> Backup Now
+        </button>
+        <button onclick="document.getElementById('quota-banner').style.display='none'" class="text-amber-500 hover:text-amber-700 p-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
         </button>
       </div>
     </div>
@@ -739,7 +762,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
     <div class="flex items-center gap-4">
       <div class="w-14 h-14 bg-white/10 border border-white/20 rounded-xl overflow-hidden flex items-center justify-center" id="settings-logo-preview"><i data-lucide="building-2" class="w-7 h-7 text-emerald-400"></i></div>
       <div class="flex-1 min-w-0">
-        <div class="text-white font-bold text-base" id="settings-biz-display">Dev Ayurveda</div>
+        <div class="text-white font-bold text-base" id="settings-biz-display">My Business </div>
         <div class="text-emerald-400 text-xs font-medium" id="settings-email-display">...</div>
         <div class="flex gap-2 mt-1.5"><span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px]">Active</span><span class="badge bg-white/10 text-white/60 text-[10px]">Admin</span></div>
       </div>
@@ -866,6 +889,74 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
       <div><label class="lbl">Phone</label><input type="text" id="set-biz-phone" class="inp text-sm"></div>
       <div class="sm:col-span-2 md:col-span-3"><label class="lbl">Address</label><input type="text" id="set-biz-address" class="inp text-sm"></div>
     </div></div>
+  </div>
+
+  <!-- Firebase Status + Active Sessions Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+
+    <!-- Firebase Status Card -->
+    <div class="card p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i data-lucide="database" class="w-5 h-5 text-blue-600"></i>
+        </div>
+        <div>
+          <div class="font-bold text-slate-800 text-sm">Firebase Status</div>
+          <div class="text-xs text-slate-400">Real-time reads &amp; writes</div>
+        </div>
+        <div class="ml-auto flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
+          <span class="live-dot"></span>
+          <span id="fb-status-text" class="text-[10px] font-bold text-emerald-700">Online</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="bg-slate-50 rounded-xl p-3 text-center">
+          <div class="text-lg font-black text-slate-800" id="fb-reads-count">0</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reads (session)</div>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center">
+          <div class="text-lg font-black text-slate-800" id="fb-writes-count">0</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Writes (session)</div>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="window.downloadLocalBackup&&downloadLocalBackup()" class="btn btn-ghost btn-sm flex-1 justify-center text-xs">
+          <i data-lucide="download" class="w-3 h-3"></i> Download Backup
+        </button>
+        <button onclick="window.showToast&&showToast('Local backup saved!');window.saveAllToLocalStorage&&saveAllToLocalStorage()" class="btn btn-ghost btn-sm flex-1 justify-center text-xs">
+          <i data-lucide="hard-drive" class="w-3 h-3"></i> Save Locally
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Sessions Card -->
+    <div class="card p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i data-lucide="monitor" class="w-5 h-5 text-purple-600"></i>
+        </div>
+        <div>
+          <div class="font-bold text-slate-800 text-sm">Where Account is Open</div>
+          <div class="text-xs text-slate-400">Active sessions this device</div>
+        </div>
+      </div>
+      <div id="active-sessions-list" class="space-y-2">
+        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="globe" class="w-4 h-4 text-emerald-600"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold text-slate-700 truncate" id="session-browser-name">This Browser</div>
+            <div class="text-[10px] text-slate-400" id="session-time">Active now</div>
+          </div>
+          <div class="w-2 h-2 bg-emerald-400 rounded-full flex-shrink-0"></div>
+        </div>
+      </div>
+      <div class="mt-3 p-2.5 bg-amber-50 border border-amber-100 rounded-xl">
+        <p class="text-[10px] text-amber-700 font-medium">💡 Sign out from other devices via Firebase Console or change your password to invalidate all sessions.</p>
+      </div>
+    </div>
+
   </div>
 
   <button onclick="window.saveSettings&&saveSettings()" class="btn btn-primary w-full justify-center py-3">
@@ -1288,7 +1379,7 @@ async function shareInvoiceWA() {
     if(!id) return;
     var inv = window.AppState && window.AppState.invoices.find(function(i){ return i.id===id; });
     if(!inv) return;
-    var biz = (window.AppState.settings && window.AppState.settings.businessName) || 'Dev Ayurveda';
+    var biz = (window.AppState.settings && window.AppState.settings.businessName) || 'My Business ';
     var fmt = window.formatCurrency || function(a){ return '₹'+Number(a).toFixed(2); };
     var msg = '🌿 *' + biz + '*'
         + '\n\nHello ' + inv.client.name + ','
@@ -1456,7 +1547,7 @@ async function shareInvoiceWA() {
     var inv = window.AppState && window.AppState.invoices.find(function(i){ return i.id === id; });
     if(!inv) return;
 
-    var biz = (window.AppState.settings && window.AppState.settings.businessName) || 'Dev Ayurveda';
+    var biz = (window.AppState.settings && window.AppState.settings.businessName) || 'My Business ';
     var fmt = window.formatCurrency || function(a){ return '₹' + Number(a).toFixed(2); };
     var msg = '🌿 *' + biz + '*'
         + '\n\nHello ' + inv.client.name + ','
@@ -1793,7 +1884,7 @@ function openWAForClient() {
     var m = document.getElementById('cl-mobile').value.replace(/\D/g,'');
     var n = document.getElementById('cl-name').value;
     var num = m.length===10?'91'+m:m;
-    window.open('https://wa.me/'+(num||'')+'?text='+encodeURIComponent('Hello '+n+', from Dev Ayurveda!'),'_blank');
+    window.open('https://wa.me/'+(num||'')+'?text='+encodeURIComponent('Hello '+n+', from My Business !'),'_blank');
 }
 window.toggleClientModal = function(show,isNew,id){ if(show) openClientDrawer(id||null,isNew); else closeClientDrawer(); };
 window.editClient = function(id){ openClientDrawer(id,false); };
@@ -1923,8 +2014,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithCustomToken, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithCustomToken, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const defaultAppId = 'dev-ayurveda-pro-auth';
         const appId = typeof __app_id !== 'undefined' ? __app_id : defaultAppId;
@@ -1939,8 +2030,115 @@ document.addEventListener('DOMContentLoaded', function() {
             app = initializeApp(firebaseConfig); 
             auth = getAuth(app); 
             db = getFirestore(app);
+
+            // ✅ OFFLINE PERSISTENCE — IndexedDB
+            enableIndexedDbPersistence(db).catch((err) => {
+                if (err.code === 'failed-precondition') {
+                    console.warn('Persistence failed: multiple tabs open');
+                } else if (err.code === 'unimplemented') {
+                    console.warn('Persistence not supported in this browser');
+                }
+            });
+
+            // Expose for non-module scripts
+            window._auth = auth;
+            window._sendPasswordResetEmail = (email) => sendPasswordResetEmail(auth, email);
+            window._signInForPinReset = (email, pw) => signInWithEmailAndPassword(auth, email, pw);
         } catch(e) {
             console.error("Firebase Init Error:", e);
+        }
+
+        // ✅ READ/WRITE COUNTERS
+        window._fbReads = 0;
+        window._fbWrites = 0;
+        function incReads(n) { window._fbReads += (n||1); const el = document.getElementById('fb-reads-count'); if(el) el.textContent = window._fbReads; }
+        function incWrites(n) { window._fbWrites += (n||1); const el = document.getElementById('fb-writes-count'); if(el) el.textContent = window._fbWrites; }
+        window._incReads = incReads; window._incWrites = incWrites;
+
+        // ✅ QUOTA ERROR HANDLER
+        window._handleQuotaError = function(err) {
+            if(err && (err.code === 'resource-exhausted' || (err.message && err.message.includes('quota')))) {
+                const banner = document.getElementById('quota-banner');
+                if(banner) { banner.style.display = 'flex'; banner.classList.remove('hidden'); }
+                if(typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        };
+
+        // ✅ LOCALSTORAGE AUTO-BACKUP HELPERS
+        window.saveAllToLocalStorage = function() {
+            try {
+                const uid = window.AppState && window.AppState.user && window.AppState.user.uid;
+                if(!uid) return;
+                const key = 'ayur_backup_' + uid;
+                localStorage.setItem(key, JSON.stringify({
+                    products: window.AppState.products || [],
+                    clients: window.AppState.clients || [],
+                    invoices: window.AppState.invoices || [],
+                    expenses: window.AppState.expenses || [],
+                    settings: window.AppState.settings || {},
+                    savedAt: new Date().toISOString()
+                }));
+            } catch(e) { console.warn('LocalStorage save failed:', e); }
+        };
+
+        function safeLocalSave() {
+            try { window.saveAllToLocalStorage && window.saveAllToLocalStorage(); } catch(e) {}
+        }
+
+        // ✅ DOWNLOAD LOCAL BACKUP (Excel via SheetJS)
+        window.downloadLocalBackup = function() {
+            try {
+                if(typeof XLSX === 'undefined') { window.showToast('SheetJS not loaded', 'error'); return; }
+                const wb = XLSX.utils.book_new();
+                const invoices = window.AppState.invoices || [];
+                const clients = window.AppState.clients || [];
+                const products = window.AppState.products || [];
+                const expenses = window.AppState.expenses || [];
+
+                if(invoices.length > 0) {
+                    const rows = invoices.map(i => ({ ID: i.id, Date: i.date, Client: i.client&&i.client.name, Total: i.grandTotal, Status: i.status, Payment: i.paymentStatus }));
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Invoices');
+                }
+                if(clients.length > 0) {
+                    const rows = clients.map(c => ({ Name: c.name, Mobile: c.mobile, GSTIN: c.gstin, Address: c.address }));
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Clients');
+                }
+                if(products.length > 0) {
+                    const rows = products.map(p => ({ Name: p.name, Category: p.category, Rate: p.rate, Cost: p.cost, GST: p.gst, Stock: p.stock, HSN: p.hsn }));
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Products');
+                }
+                if(expenses.length > 0) {
+                    const rows = expenses.map(e => ({ Date: e.date, Category: e.category, Vendor: e.desc, Amount: e.amount, ITC: e.gstAmount }));
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Expenses');
+                }
+
+                const biz = (window.AppState.settings && window.AppState.settings.businessName) || 'ERP';
+                XLSX.writeFile(wb, biz + '_Backup_' + new Date().toISOString().split('T')[0] + '.xlsx');
+                window.showToast('Backup downloaded! ✅');
+            } catch(e) {
+                window.showToast('Backup failed: ' + e.message, 'error');
+            }
+        };
+
+        // ✅ ACTIVE SESSIONS — populate browser/device info
+        function populateSessionInfo() {
+            const ua = navigator.userAgent;
+            let browser = 'Browser';
+            if(ua.indexOf('Chrome') > -1 && ua.indexOf('Edg') === -1) browser = 'Chrome';
+            else if(ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) browser = 'Safari';
+            else if(ua.indexOf('Firefox') > -1) browser = 'Firefox';
+            else if(ua.indexOf('Edg') > -1) browser = 'Edge';
+
+            let os = 'Desktop';
+            if(/Android/i.test(ua)) os = 'Android';
+            else if(/iPhone|iPad/i.test(ua)) os = 'iOS';
+            else if(/Win/i.test(ua)) os = 'Windows';
+            else if(/Mac/i.test(ua)) os = 'macOS';
+
+            const nameEl = document.getElementById('session-browser-name');
+            const timeEl = document.getElementById('session-time');
+            if(nameEl) nameEl.textContent = browser + ' on ' + os;
+            if(timeEl) timeEl.textContent = 'Signed in ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
         }
 
         const currencyMap = { 'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£' };
@@ -2250,6 +2448,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     setupFirestoreListeners();
                     renderNavigation();
                     switchTab(window.AppState.activeTab);
+                    populateSessionInfo();
+                    // Auto-backup on login from any existing local backup
+                    safeLocalSave();
                 } else {
                     // Critical Fix: Hard reset state and CLEAR listeners on logout to prevent any data/image leaking
                     clearFirestoreListeners();
@@ -2263,10 +2464,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Dismiss splash - with hard 6s failsafe
+        // Dismiss splash - with hard failsafe
         function dismissSplash() {
             const splash = document.getElementById('splash');
-            if(!splash || splash.classList.contains('splash-exit')) return;
+            if(!splash || splash.classList.contains('splash-hidden')) return;
             splash.classList.add('splash-out');
             setTimeout(() => {
                 splash.style.display = 'none';
@@ -2281,17 +2482,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     dismissSplash();
                 }
             }, 150);
-            // Hard failsafe: dismiss after 6s no matter what
+            // Hard failsafe: dismiss after 4s and show login if auth never fired
             setTimeout(() => {
                 clearInterval(checkAuthAndDismiss);
                 dismissSplash();
-                // If auth never loaded, show login
                 if(!authResolved) {
-                    const authC = document.getElementById('auth-container');
+                    // auth-wrap is the correct ID in this file
+                    const authC = document.getElementById('auth-wrap');
                     if(authC) authC.style.display = 'block';
                 }
-            }, 6000);
-        }, 1500);
+            }, 4000);
+        }, 800);
 
         window.toggleAuthMode = function(mode) {
             const lForm = document.getElementById('login-form'); if(lForm) lForm.classList.toggle('hidden', mode === 'signup');
@@ -2412,24 +2613,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Modifying listeners to split Data securely into Active vs Deleted
             window.unsubProducts = onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'products'), (snap) => { 
+                incReads(snap.docs.length);
                 const all = snap.docs.map(d => ({id: d.id, ...d.data()})); 
                 window.AppState.products = all.filter(p => !p.isDeleted);
                 window.AppState.deletedProducts = all.filter(p => p.isDeleted);
+                safeLocalSave();
                 if(window.AppState.activeTab === 'inventory' && window.renderInventory) window.renderInventory();
                 if(window.AppState.activeTab === 'dashboard') window.updateDashboard();
-            }, (err) => console.error("Products Listener Error:", err));
+            }, (err) => { console.error("Products Listener Error:", err); window._handleQuotaError(err); });
 
             window.unsubClients = onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'clients'), (snap) => { 
+                incReads(snap.docs.length);
                 const all = snap.docs.map(d => ({id: d.id, ...d.data()})); 
                 window.AppState.clients = all.filter(c => !c.isDeleted);
                 window.AppState.deletedClients = all.filter(c => c.isDeleted);
+                safeLocalSave();
                 if(window.AppState.activeTab === 'clients') window.renderClients();
-            }, (err) => console.error("Clients Listener Error:", err));
+            }, (err) => { console.error("Clients Listener Error:", err); window._handleQuotaError(err); });
 
             window.unsubInvoices = onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'invoices'), (snap) => { 
+                incReads(snap.docs.length);
                 const all = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.createdAt - a.createdAt); 
                 window.AppState.invoices = all.filter(i => !i.isDeleted);
                 window.AppState.deletedInvoices = all.filter(i => i.isDeleted);
+                safeLocalSave();
                 if(!window.AppState.draft.id || window.AppState.draft.id.startsWith('INV-')) {
                     window.AppState.draft.id = window.getNextInvoiceId();
                     if(window.AppState.activeTab === 'invoice') window.updateInvoiceUI();
@@ -2438,42 +2645,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(window.AppState.activeTab === 'dashboard') window.updateDashboard();
                 if(window.AppState.activeTab === 'daybook' && window.renderDaybook) window.renderDaybook();
                 if(window.AppState.activeTab === 'clients') window.renderClients();
-            }, (err) => console.error("Invoices Listener Error:", err));
+            }, (err) => { console.error("Invoices Listener Error:", err); window._handleQuotaError(err); });
 
             window.unsubExpenses = onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'expenses'), (snap) => {
+                incReads(snap.docs.length);
                 const all = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                 window.AppState.expenses = all.filter(e => !e.isDeleted);
                 window.AppState.deletedExpenses = all.filter(e => e.isDeleted);
+                safeLocalSave();
                 if(window.AppState.activeTab === 'expenses') window.renderExpenses();
                 if(window.AppState.activeTab === 'daybook' && window.renderDaybook) window.renderDaybook();
                 if(window.AppState.activeTab === 'dashboard') window.updateDashboard();
-            }, (err) => console.error("Expenses Listener Error:", err));
+            }, (err) => { console.error("Expenses Listener Error:", err); window._handleQuotaError(err); });
 
             window.unsubSettings = onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'config', 'settings'), (docSnap) => {
+                incReads(1);
                 if (docSnap.exists()) { 
                     window.AppState.settings = { ...window.AppState.settings, ...docSnap.data() }; 
+                    safeLocalSave();
                     if(window.AppState.activeTab === 'settings') window.populateSettingsUI(); 
                     
                     const lockScreen = document.getElementById('pin-lock');
                     if(window.AppState.settings.pinEnabled && !sessionStorage.getItem('ayur_unlocked') && lockScreen) {
-                        lockScreen.classList.add('active'); lockScreen.classList.remove('hidden');
+                        lockScreen.style.display = 'flex';
+                        setTimeout(function(){ var f=document.getElementById('pin-field'); if(f) f.focus(); }, 200);
                     }
                     window.applyFeatureVisibility();
                     renderNavigation();
                 }
-            }, (err) => console.error("Settings Listener Error:", err));
+            }, (err) => { console.error("Settings Listener Error:", err); window._handleQuotaError(err); });
         }
 
         window.verifyPin = function() {
-            const entered = document.getElementById('secure-pin-field') ? document.getElementById('secure-pin-field').value : '';
-            if (entered === window.AppState.settings.pin) {
+            const pinInput = document.getElementById('pin-field');
+            const entered = pinInput ? pinInput.value.trim() : '';
+            const saved = String(window.AppState.settings.pin || '').trim();
+            if (entered === saved && entered !== '') {
                 sessionStorage.setItem('ayur_unlocked', 'true');
                 const lockScreen = document.getElementById('pin-lock');
-                if(lockScreen) { lockScreen.classList.remove('active'); lockScreen.classList.add('hidden'); }
+                if(lockScreen) lockScreen.style.display = 'none';
                 const errEl = document.getElementById('pin-error'); if(errEl) errEl.classList.add('hidden');
+                if(pinInput) pinInput.value = '';
             } else { 
                 const errEl = document.getElementById('pin-error'); if(errEl) errEl.classList.remove('hidden'); 
-                setVal('secure-pin-field', ''); 
+                if(pinInput) { pinInput.value = ''; pinInput.focus(); }
             }
         }
         window.togglePinFields = function(checked) { const el = document.getElementById('pin-fields'); if(el) el.classList.toggle('hidden', !checked); }
@@ -3208,7 +3423,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const html = `
             <div class="font-sans bg-white relative p-8">
-                <h1 class="text-3xl font-bold text-slate-800 mb-2">${window.AppState.settings.businessName || 'Dev Ayurveda'}</h1>
+                <h1 class="text-3xl font-bold text-slate-800 mb-2">${window.AppState.settings.businessName || 'My Business '}</h1>
                 <h2 class="text-xl text-slate-500 mb-8 border-b pb-4">Statement of Accounts: ${clientName}</h2>
                 <table class="w-full text-left text-sm mb-8"><thead class="bg-slate-100"><tr><th class="py-2 px-2">Date</th><th class="py-2 px-2">Invoice No.</th><th class="py-2 px-2 text-right">Invoice Amount</th><th class="py-2 px-2 text-center">Status</th><th class="py-2 px-2 text-right">Running Due Balance</th></tr></thead><tbody>${rows}</tbody></table>
                 <div class="text-right text-lg font-bold text-slate-800">Total Outstanding Balance: <span class="text-red-600">₹${runningBal.toFixed(2)}</span></div>
@@ -3615,7 +3830,7 @@ document.addEventListener('DOMContentLoaded', function() {
             logoHtml = '';
         }
         if(tpl === 'ayurveda') {
-            // Dev Ayurveda special - warm green herbal theme
+            // My Business special - warm green herbal theme
             wrapperStyle = 'border-top:6px solid #065f46;';
             headerStyles = '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid #d1fae5;"><div style="display:flex;align-items:center;gap:12px;">'+(s.logo?`<img src="${s.logo}" style="height:50px;object-fit:contain;">`:'<div style="width:44px;height:44px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">🌿</div>')+`<div><h1 style="font-size:18px;font-weight:800;color:#064e3b;">${s.businessName}</h1><p style="font-size:9px;color:#059669;text-transform:uppercase;letter-spacing:0.15em;margin-top:2px;">Ayurvedic Wellness Center</p></div></div><div style="text-align:right;"><div style="background:#064e3b;color:white;padding:6px 12px;border-radius:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">Tax Invoice</div><p style="font-size:9px;color:#64748b;margin-top:6px;">${s.phone?'📞 '+s.phone:''}</p></div></div>`;
             tableHeadStyles = 'background:#065f46;color:#a7f3d0;font-size:11px;font-weight:600;';
@@ -4137,9 +4352,211 @@ function filterTemplates(cat) {
             ? 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white transition-all'
             : 'px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';
     });
-    // Re-render gallery with filter
     if(window._renderTplGallery) window._renderTplGallery();
 }
+</script>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgot-pw-modal" class="modal" onclick="if(event.target===this)closeForgotPassword()">
+  <div class="modal-box max-w-sm w-full">
+    <div class="modal-head">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center"><i data-lucide="key" class="w-4 h-4 text-emerald-600"></i></div>
+        <div><div class="font-bold text-slate-800">Reset Password</div><div class="text-xs text-slate-400">A reset link will be sent to your email</div></div>
+      </div>
+      <button onclick="closeForgotPassword()" class="btn btn-icon btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="forgot-pw-sent" class="hidden text-center py-4">
+        <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="mail-check" class="w-7 h-7 text-emerald-600"></i></div>
+        <div class="font-bold text-slate-800 mb-2">Email Sent!</div>
+        <p class="text-slate-500 text-sm">Password reset link has been sent. Please check your inbox and spam folder.</p>
+        <button onclick="closeForgotPassword()" class="btn btn-primary w-full justify-center mt-4">Back to Login</button>
+      </div>
+      <div id="forgot-pw-form">
+        <p class="text-slate-500 text-sm mb-4">Enter your registered email address and we'll send you a password reset link.</p>
+        <div class="mb-3">
+          <label class="lbl">Email Address</label>
+          <input type="email" id="forgot-pw-email" class="inp" placeholder="you@example.com" onkeydown="if(event.key==='Enter') handleForgotPassword()">
+        </div>
+        <p id="forgot-pw-error" class="text-red-500 text-sm mt-1 hidden"></p>
+      </div>
+    </div>
+    <div class="modal-foot" id="forgot-pw-footer">
+      <button onclick="closeForgotPassword()" class="btn btn-ghost">Cancel</button>
+      <button onclick="handleForgotPassword()" id="forgot-pw-btn" class="btn btn-primary"><i data-lucide="send" class="w-4 h-4"></i> Send Reset Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PIN MODAL -->
+<div id="forgot-pin-modal" class="modal" onclick="if(event.target===this)closeForgotPinModal()">
+  <div class="modal-box max-w-sm w-full">
+    <div class="modal-head">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center"><i data-lucide="shield-off" class="w-4 h-4 text-red-500"></i></div>
+        <div><div class="font-bold text-slate-800">Unlock App</div><div class="text-xs text-slate-400">Verify with your account password</div></div>
+      </div>
+      <button onclick="closeForgotPinModal()" class="btn btn-icon btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="forgot-pin-success" class="hidden text-center py-4">
+        <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="unlock" class="w-7 h-7 text-emerald-600"></i></div>
+        <div class="font-bold text-slate-800 mb-2">App Unlocked!</div>
+        <p class="text-slate-500 text-sm">Identity verified. You can change or disable PIN from Settings.</p>
+        <button onclick="closeForgotPinModal();dismissPinLock()" class="btn btn-primary w-full justify-center mt-4"><i data-lucide="unlock" class="w-4 h-4"></i> Open App</button>
+      </div>
+      <div id="forgot-pin-form">
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl mb-4 flex gap-2 items-start">
+          <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+          <p class="text-amber-700 text-xs">Enter the <strong>account password</strong> you use to log in to this ERP. This will bypass the PIN lock.</p>
+        </div>
+        <div class="mb-3">
+          <label class="lbl">Email</label>
+          <input type="email" id="forgot-pin-email" class="inp text-sm" placeholder="your@email.com">
+        </div>
+        <div class="mb-3">
+          <label class="lbl">Account Password</label>
+          <div class="relative">
+            <input type="password" id="forgot-pin-password" class="inp text-sm pr-11" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleForgotPin()">
+            <button type="button" class="eye-btn absolute right-3 top-1/2 -translate-y-1/2" onclick="toggleEye('forgot-pin-password',this)"><i data-lucide="eye" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <p id="forgot-pin-error" class="text-red-500 text-sm mt-1 hidden"></p>
+      </div>
+    </div>
+    <div class="modal-foot" id="forgot-pin-footer">
+      <button onclick="closeForgotPinModal()" class="btn btn-ghost">Cancel</button>
+      <button onclick="handleForgotPin()" id="forgot-pin-btn" class="btn btn-primary"><i data-lucide="shield-check" class="w-4 h-4"></i> Verify & Unlock</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// FORGOT PASSWORD
+// ================================================================
+window.showForgotPassword = function() {
+    var form = document.getElementById('forgot-pw-form');
+    var sent = document.getElementById('forgot-pw-sent');
+    var footer = document.getElementById('forgot-pw-footer');
+    var err = document.getElementById('forgot-pw-error');
+    var emailEl = document.getElementById('forgot-pw-email');
+    if(form) form.classList.remove('hidden');
+    if(sent) sent.classList.add('hidden');
+    if(footer) footer.classList.remove('hidden');
+    if(err) { err.classList.add('hidden'); err.textContent = ''; }
+    var loginEmail = document.getElementById('login-email');
+    if(loginEmail && loginEmail.value && emailEl) emailEl.value = loginEmail.value;
+    var modal = document.getElementById('forgot-pw-modal');
+    if(modal) modal.classList.add('open');
+    if(typeof lucide !== 'undefined') lucide.createIcons();
+    setTimeout(function(){ if(emailEl) emailEl.focus(); }, 150);
+};
+window.closeForgotPassword = function() {
+    var modal = document.getElementById('forgot-pw-modal');
+    if(modal) modal.classList.remove('open');
+};
+window.handleForgotPassword = async function() {
+    var emailEl = document.getElementById('forgot-pw-email');
+    var errEl = document.getElementById('forgot-pw-error');
+    var btn = document.getElementById('forgot-pw-btn');
+    var email = emailEl ? emailEl.value.trim() : '';
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if(errEl) { errEl.textContent = 'Please enter a valid email address.'; errEl.classList.remove('hidden'); }
+        return;
+    }
+    if(errEl) errEl.classList.add('hidden');
+    if(btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sending...'; if(typeof lucide!=='undefined') lucide.createIcons(); }
+    try {
+        if(!window._sendPasswordResetEmail) throw new Error('Auth not ready. Please reload the app.');
+        await window._sendPasswordResetEmail(email);
+        var form = document.getElementById('forgot-pw-form');
+        var sent = document.getElementById('forgot-pw-sent');
+        var footer = document.getElementById('forgot-pw-footer');
+        if(form) form.classList.add('hidden');
+        if(sent) sent.classList.remove('hidden');
+        if(footer) footer.classList.add('hidden');
+        if(typeof lucide !== 'undefined') lucide.createIcons();
+    } catch(e) {
+        var msg = e.message || 'Something went wrong. Please try again.';
+        if(e.code === 'auth/user-not-found') msg = 'No account found with this email.';
+        if(e.code === 'auth/invalid-email') msg = 'Invalid email format.';
+        if(e.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try again later.';
+        if(errEl) { errEl.textContent = msg; errEl.classList.remove('hidden'); }
+    } finally {
+        if(btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Send Reset Link'; if(typeof lucide!=='undefined') lucide.createIcons(); }
+    }
+};
+
+// ================================================================
+// FORGOT PIN
+// ================================================================
+window.showForgotPinModal = function() {
+    var form = document.getElementById('forgot-pin-form');
+    var success = document.getElementById('forgot-pin-success');
+    var footer = document.getElementById('forgot-pin-footer');
+    var errEl = document.getElementById('forgot-pin-error');
+    var emailEl = document.getElementById('forgot-pin-email');
+    var pwEl = document.getElementById('forgot-pin-password');
+    if(form) form.classList.remove('hidden');
+    if(success) success.classList.add('hidden');
+    if(footer) footer.classList.remove('hidden');
+    if(errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+    if(pwEl) pwEl.value = '';
+    if(window.AppState && window.AppState.user && window.AppState.user.email && emailEl)
+        emailEl.value = window.AppState.user.email;
+    var modal = document.getElementById('forgot-pin-modal');
+    if(modal) modal.classList.add('open');
+    if(typeof lucide !== 'undefined') lucide.createIcons();
+    setTimeout(function(){ if(pwEl) pwEl.focus(); }, 150);
+};
+window.closeForgotPinModal = function() {
+    var modal = document.getElementById('forgot-pin-modal');
+    if(modal) modal.classList.remove('open');
+};
+window.dismissPinLock = function() {
+    var pinLock = document.getElementById('pin-lock');
+    if(pinLock) pinLock.style.display = 'none';
+    sessionStorage.setItem('ayur_unlocked', 'true');
+    if(window.showToast) window.showToast('App unlocked successfully!');
+};
+window.handleForgotPin = async function() {
+    var emailEl = document.getElementById('forgot-pin-email');
+    var pwEl = document.getElementById('forgot-pin-password');
+    var errEl = document.getElementById('forgot-pin-error');
+    var btn = document.getElementById('forgot-pin-btn');
+    var email = emailEl ? emailEl.value.trim() : '';
+    var password = pwEl ? pwEl.value : '';
+    if(!email || !password) {
+        if(errEl) { errEl.textContent = 'Both email and password are required.'; errEl.classList.remove('hidden'); }
+        return;
+    }
+    if(errEl) errEl.classList.add('hidden');
+    if(btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Verifying...'; if(typeof lucide!=='undefined') lucide.createIcons(); }
+    try {
+        if(!window._signInForPinReset) throw new Error('Auth not ready. Please reload the app.');
+        await window._signInForPinReset(email, password);
+        var form = document.getElementById('forgot-pin-form');
+        var success = document.getElementById('forgot-pin-success');
+        var footer = document.getElementById('forgot-pin-footer');
+        if(form) form.classList.add('hidden');
+        if(success) success.classList.remove('hidden');
+        if(footer) footer.classList.add('hidden');
+        if(typeof lucide !== 'undefined') lucide.createIcons();
+    } catch(e) {
+        var msg = 'Incorrect credentials. Please try again.';
+        if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'Incorrect email or password.';
+        if(e.code === 'auth/user-not-found') msg = 'No account found with this email.';
+        if(e.code === 'auth/too-many-requests') msg = 'Too many failed attempts. Please try again later.';
+        if(errEl) { errEl.textContent = msg; errEl.classList.remove('hidden'); }
+    } finally {
+        if(btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i> Verify & Unlock'; if(typeof lucide!=='undefined') lucide.createIcons(); }
+    }
+};
+
+window.showLogin  = function() { if(window.toggleAuthMode) window.toggleAuthMode('login'); };
+window.showSignup = function() { if(window.toggleAuthMode) window.toggleAuthMode('signup'); };
 </script>
 </body>
 </html>
