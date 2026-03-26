@@ -406,7 +406,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
           <i data-lucide="leaf" class="w-5 h-5 text-white"></i>
         </div>
         <div>
-          <div class="text-white font-bold text-sm leading-tight">My Business </div>
+          <div class="text-white font-bold text-sm leading-tight" id="sidebar-biz-name">My Business</div>
           <div class="text-emerald-500 text-[9px] font-bold uppercase tracking-widest">Modular Pro ERP</div>
         </div>
       </div>
@@ -478,10 +478,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
   </div>
   <!-- Stat Cards -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i></div><span class="badge badge-green text-[10px]">Revenue</span></div><div class="text-2xl font-bold text-slate-800 mb-0.5" id="dash-revenue">₹0</div><div class="text-xs text-slate-400">Total Revenue</div></div>
-    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center"><i data-lucide="receipt" class="w-4 h-4 text-red-500"></i></div><span class="badge badge-red text-[10px]">Expenses</span></div><div class="text-2xl font-bold text-slate-800 mb-0.5" id="dash-expenses">₹0</div><div class="text-xs text-slate-400">Total Expenses</div></div>
-    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center"><i data-lucide="indian-rupee" class="w-4 h-4 text-blue-600"></i></div><span class="badge badge-blue text-[10px]" id="dash-profit-label">Net</span></div><div class="text-2xl font-bold text-slate-800 mb-0.5" id="dash-profit">₹0</div><div class="text-xs text-slate-400">Net Profit</div></div>
-    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></div><span class="badge badge-amber text-[10px]">Pending</span></div><div class="text-2xl font-bold text-slate-800 mb-0.5" id="dash-unpaid">₹0</div><div class="text-xs text-slate-400">Outstanding</div></div>
+    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i></div><span class="badge badge-green text-[10px]">Revenue</span></div><div class="font-bold text-slate-800 mb-0.5 truncate" style="font-size:clamp(14px,3.5vw,22px)" id="dash-revenue">₹0</div><div class="text-xs text-slate-400">Total Revenue</div></div>
+    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0"><i data-lucide="receipt" class="w-4 h-4 text-red-500"></i></div><span class="badge badge-red text-[10px]">Expenses</span></div><div class="font-bold text-slate-800 mb-0.5 truncate" style="font-size:clamp(14px,3.5vw,22px)" id="dash-expenses">₹0</div><div class="text-xs text-slate-400">Total Expenses</div></div>
+    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0"><i data-lucide="indian-rupee" class="w-4 h-4 text-blue-600"></i></div><span class="badge badge-blue text-[10px]" id="dash-profit-label">Net</span></div><div class="font-bold text-slate-800 mb-0.5 truncate" style="font-size:clamp(14px,3.5vw,22px)" id="dash-profit">₹0</div><div class="text-xs text-slate-400">Net Profit</div></div>
+    <div class="stat"><div class="flex items-center justify-between mb-3"><div class="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></div><span class="badge badge-amber text-[10px]">Pending</span></div><div class="font-bold text-slate-800 mb-0.5 truncate" style="font-size:clamp(14px,3.5vw,22px)" id="dash-unpaid">₹0</div><div class="text-xs text-slate-400">Outstanding</div></div>
   </div>
   <!-- Charts -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -787,7 +787,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f2f5;color:#0f172a
     <div class="flex items-center gap-4">
       <div class="w-14 h-14 bg-white/10 border border-white/20 rounded-xl overflow-hidden flex items-center justify-center" id="settings-logo-preview"><i data-lucide="building-2" class="w-7 h-7 text-emerald-400"></i></div>
       <div class="flex-1 min-w-0">
-        <div class="text-white font-bold text-base" id="settings-biz-display">My Business </div>
+        <div class="text-white font-bold text-base" id="settings-biz-display">My Business</div>
         <div class="text-emerald-400 text-xs font-medium" id="settings-email-display">...</div>
         <div class="flex gap-2 mt-1.5"><span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px]">Active</span><span class="badge bg-white/10 text-white/60 text-[10px]">Admin</span></div>
       </div>
@@ -2107,12 +2107,21 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Firebase Init Error:", e);
         }
 
-        // ✅ READ/WRITE COUNTERS
-        window._fbReads = 0;
-        window._fbWrites = 0;
-        function incReads(n) { window._fbReads += (n||1); const el = document.getElementById('fb-reads-count'); if(el) el.textContent = window._fbReads; }
-        function incWrites(n) { window._fbWrites += (n||1); const el = document.getElementById('fb-writes-count'); if(el) el.textContent = window._fbWrites; }
-        window._incReads = incReads; window._incWrites = incWrites;
+        // ✅ READ/WRITE COUNTERS — Daily Reset
+        (function() {
+            var today = new Date().toDateString();
+            var stored = JSON.parse(localStorage.getItem('ayur_fb_stats') || '{}');
+            if(stored.date !== today) { stored = {date: today, reads: 0, writes: 0}; }
+            window._fbReads = stored.reads || 0;
+            window._fbWrites = stored.writes || 0;
+            function saveStats() { localStorage.setItem('ayur_fb_stats', JSON.stringify({date: today, reads: window._fbReads, writes: window._fbWrites})); }
+            function incReads(n) { window._fbReads += (n||1); saveStats(); var el = document.getElementById('fb-reads-count'); if(el) el.textContent = window._fbReads; }
+            function incWrites(n) { window._fbWrites += (n||1); saveStats(); var el = document.getElementById('fb-writes-count'); if(el) el.textContent = window._fbWrites; }
+            window._incReads = incReads; window._incWrites = incWrites;
+            // Show initial counts
+            var rEl = document.getElementById('fb-reads-count'); if(rEl) rEl.textContent = window._fbReads;
+            var wEl = document.getElementById('fb-writes-count'); if(wEl) wEl.textContent = window._fbWrites;
+        })();
 
         // ✅ QUOTA ERROR HANDLER
         window._handleQuotaError = function(err) {
@@ -2144,7 +2153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try { window.saveAllToLocalStorage && window.saveAllToLocalStorage(); } catch(e) {}
         }
 
-        // ✅ DOWNLOAD LOCAL BACKUP (Excel via SheetJS)
+        // ✅ DOWNLOAD LOCAL BACKUP (Rich Excel with analytics)
         window.downloadLocalBackup = function() {
             try {
                 if(typeof XLSX === 'undefined') { window.showToast('SheetJS not loaded', 'error'); return; }
@@ -2153,27 +2162,124 @@ document.addEventListener('DOMContentLoaded', function() {
                 const clients = window.AppState.clients || [];
                 const products = window.AppState.products || [];
                 const expenses = window.AppState.expenses || [];
+                const s = window.AppState.settings || {};
+                const bizName = s.businessName || 'My Business';
+                const now = new Date().toLocaleString('en-IN');
 
+                // Helper: add sheet with header styling info
+                const addSheet = (name, rows) => {
+                    if(rows.length === 0) return;
+                    const ws = XLSX.utils.json_to_sheet(rows);
+                    XLSX.utils.book_append_sheet(wb, ws, name);
+                };
+
+                // 1. SUMMARY SHEET
+                const totalRev = invoices.filter(i=>i.status==='final').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                const totalExp = expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+                const totalTax = invoices.filter(i=>i.status==='final').reduce((s,i)=>s+Number(i.totalTax||0),0);
+                const paid = invoices.filter(i=>i.paymentStatus==='paid').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                const unpaid = invoices.filter(i=>i.paymentStatus!=='paid'&&i.status==='final').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                const invVal = products.reduce((s,p)=>s+Number(p.stock||0)*Number(p.cost||0),0);
+                const summaryRows = [
+                    {Metric:'Business Name', Value: bizName},
+                    {Metric:'Report Generated', Value: now},
+                    {Metric:'--- REVENUE ---', Value: ''},
+                    {Metric:'Total Revenue', Value: totalRev},
+                    {Metric:'GST Collected', Value: totalTax},
+                    {Metric:'Collected (Paid)', Value: paid},
+                    {Metric:'Outstanding (Unpaid)', Value: unpaid},
+                    {Metric:'--- EXPENSES ---', Value: ''},
+                    {Metric:'Total Expenses', Value: totalExp},
+                    {Metric:'Net Profit', Value: totalRev - totalExp},
+                    {Metric:'--- INVENTORY ---', Value: ''},
+                    {Metric:'Total Products', Value: products.length},
+                    {Metric:'Inventory Value (Cost)', Value: invVal},
+                    {Metric:'Low Stock Items (≤10)', Value: products.filter(p=>Number(p.stock||0)<=10).length},
+                    {Metric:'--- CRM ---', Value: ''},
+                    {Metric:'Total Clients', Value: clients.length},
+                    {Metric:'Total Invoices', Value: invoices.length},
+                ];
+                addSheet('📊 Summary', summaryRows);
+
+                // 2. INVOICES SHEET
                 if(invoices.length > 0) {
-                    const rows = invoices.map(i => ({ ID: i.id, Date: i.date, Client: i.client&&i.client.name, Total: i.grandTotal, Status: i.status, Payment: i.paymentStatus }));
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Invoices');
-                }
-                if(clients.length > 0) {
-                    const rows = clients.map(c => ({ Name: c.name, Mobile: c.mobile, GSTIN: c.gstin, Address: c.address }));
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Clients');
-                }
-                if(products.length > 0) {
-                    const rows = products.map(p => ({ Name: p.name, Category: p.category, Rate: p.rate, Cost: p.cost, GST: p.gst, Stock: p.stock, HSN: p.hsn }));
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Products');
-                }
-                if(expenses.length > 0) {
-                    const rows = expenses.map(e => ({ Date: e.date, Category: e.category, Vendor: e.desc, Amount: e.amount, ITC: e.gstAmount }));
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Expenses');
+                    const rows = invoices.map(i => ({
+                        'Invoice ID': i.id, 'Doc Type': i.docType||'Tax Invoice',
+                        'Date': i.date, 'Client Name': i.client&&i.client.name||'',
+                        'Client Mobile': i.client&&i.client.mobile||'',
+                        'Client GSTIN': i.client&&i.client.gstin||'',
+                        'Subtotal (₹)': Number(i.subtotal||0).toFixed(2),
+                        'GST (₹)': Number(i.totalTax||0).toFixed(2),
+                        'Discount (₹)': Number(i.discount||0).toFixed(2),
+                        'Grand Total (₹)': Number(i.grandTotal||0).toFixed(2),
+                        'Status': i.status, 'Payment Status': i.paymentStatus||'unpaid',
+                        'Payment Mode': i.paymentMode||'',
+                        'Items Count': (i.items||[]).length
+                    }));
+                    // Totals row
+                    rows.push({'Invoice ID':'TOTAL','Grand Total (₹)':totalRev.toFixed(2),'GST (₹)':totalTax.toFixed(2)});
+                    addSheet('🧾 Invoices', rows);
                 }
 
-                const biz = (window.AppState.settings && window.AppState.settings.businessName) || 'ERP';
-                XLSX.writeFile(wb, biz + '_Backup_' + new Date().toISOString().split('T')[0] + '.xlsx');
-                window.showToast('Backup downloaded! ✅');
+                // 3. CLIENTS SHEET
+                if(clients.length > 0) {
+                    const rows = clients.map(c => {
+                        const cInvs = invoices.filter(i=>i.client&&i.client.name===c.name&&i.status==='final');
+                        const clv = cInvs.reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                        const unp = cInvs.filter(i=>i.paymentStatus!=='paid').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                        return { Name:c.name, Mobile:c.mobile||'', GSTIN:c.gstin||'', Address:c.address||'',
+                            'Total Orders': cInvs.length, 'Total Billed (₹)': clv.toFixed(2),
+                            'Outstanding (₹)': unp.toFixed(2), 'Notes': c.notes||'' };
+                    });
+                    addSheet('👥 Clients', rows);
+                }
+
+                // 4. PRODUCTS SHEET
+                if(products.length > 0) {
+                    const rows = products.map(p => ({
+                        Name:p.name, Category:p.category||'', HSN:p.hsn||'',
+                        'Cost (₹)': p.cost||0, 'Rate (₹)': p.rate||0,
+                        'Margin (%)': p.cost&&p.rate ? (((p.rate-p.cost)/p.rate)*100).toFixed(1)+'%' : '',
+                        'GST (%)': p.gst||0, 'Stock': p.stock||0,
+                        'Stock Value (₹)': (Number(p.stock||0)*Number(p.cost||0)).toFixed(2),
+                        'Batch': p.batch||'', 'Expiry': p.expiry||'',
+                        'Status': Number(p.stock||0)<=0?'⚠️ OUT OF STOCK':Number(p.stock||0)<=10?'🔴 LOW STOCK':'✅ OK'
+                    }));
+                    rows.push({'Name':'TOTAL STOCK VALUE','Stock Value (₹)':invVal.toFixed(2)});
+                    addSheet('📦 Products', rows);
+                }
+
+                // 5. EXPENSES SHEET
+                if(expenses.length > 0) {
+                    const rows = expenses.map(e => ({
+                        Date:e.date, Category:e.category||'', 'Vendor/Desc':e.desc||'',
+                        'Amount (₹)':Number(e.amount||0).toFixed(2),
+                        'ITC/GST (₹)':Number(e.gstAmount||0).toFixed(2),
+                        'Net Cost (₹)':(Number(e.amount||0)-Number(e.gstAmount||0)).toFixed(2)
+                    }));
+                    rows.push({'Date':'TOTAL','Amount (₹)':totalExp.toFixed(2),'Net Cost (₹)':(totalExp - expenses.reduce((s,e)=>s+Number(e.gstAmount||0),0)).toFixed(2)});
+                    addSheet('🧾 Expenses', rows);
+                }
+
+                // 6. PAYMENT ANALYTICS
+                const upiRev = invoices.filter(i=>i.paymentMode==='upi'&&i.status==='final').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                const cashRev = invoices.filter(i=>i.paymentMode==='cash'&&i.status==='final').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                const creditRev = invoices.filter(i=>i.paymentMode==='credit'&&i.status==='final').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                addSheet('📈 Analytics', [
+                    {'Category':'Payment Mode Analysis','Value':''},
+                    {'Category':'UPI/Bank Revenue','Value':upiRev.toFixed(2)},
+                    {'Category':'Cash Revenue','Value':cashRev.toFixed(2)},
+                    {'Category':'Credit (Pending)','Value':creditRev.toFixed(2)},
+                    {'Category':'','Value':''},
+                    {'Category':'Top Clients by Revenue','Value':''},
+                    ...clients.map(c=>{
+                        const clv=invoices.filter(i=>i.client&&i.client.name===c.name&&i.status==='final').reduce((s,i)=>s+Number(i.grandTotal||0),0);
+                        return {'Category':c.name,'Value':clv.toFixed(2)};
+                    }).sort((a,b)=>Number(b.Value)-Number(a.Value)).slice(0,10),
+                ]);
+
+                XLSX.writeFile(wb, bizName.replace(/\s+/g,'_') + '_Full_Backup_' + new Date().toISOString().split('T')[0] + '.xlsx');
+                window.showToast('Rich backup downloaded! ✅ 6 sheets');
             } catch(e) {
                 window.showToast('Backup failed: ' + e.message, 'error');
             }
@@ -3672,6 +3778,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         window.populateSettingsUI = function() {
             const s = window.AppState.settings;
+            // Dynamic app name update — show user's business name everywhere
+            const bizName = s.businessName || 'My Business';
+            const sidebarName = document.getElementById('sidebar-biz-name'); if(sidebarName) sidebarName.textContent = bizName;
+            const topbarTitle = document.getElementById('topbar-biz-name'); if(topbarTitle) topbarTitle.textContent = bizName;
             setVal('set-biz-name', s.businessName || ''); setVal('set-biz-gstin', s.gstin || ''); setVal('set-biz-address', s.address || ''); 
             setVal('set-biz-phone', s.phone || ''); setVal('set-biz-upi', s.upi || ''); setVal('set-biz-terms', s.customTerms || ''); 
             setVal('set-biz-logo-display', s.logoDisplay || 'both'); setVal('set-lock-date', s.lockDate || ''); 
@@ -3908,6 +4018,130 @@ document.addEventListener('DOMContentLoaded', function() {
             billToStyle = 'border:1px solid #374151;background:#111827;padding:12px;border-radius:6px;';
             summaryBoxStyle = 'border:1px solid #d4af37;background:#111827;padding:14px;border-radius:6px;';
             fontClass = 'font-sans';
+            logoHtml = '';
+        }
+        if(tpl === 'tricolor') {
+            // Indian flag brushstroke theme
+            wrapperStyle = 'background:white;';
+            headerStyles = `<div style="position:relative;padding-bottom:20px;margin-bottom:24px;">
+              <div style="position:absolute;bottom:0;left:-10mm;right:-10mm;height:6px;background:linear-gradient(90deg,#FF9933 33%,white 33%,white 66%,#138808 66%);"></div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>${s.logo?`<img src="${s.logo}" style="height:50px;object-fit:contain;margin-bottom:6px;display:block;">`:''}
+                  <h1 style="font-size:24px;font-weight:900;color:#000080;letter-spacing:-0.02em;">${s.businessName}</h1>
+                  <p style="font-size:10px;color:#555;margin-top:3px;">${s.address||''} ${s.phone?'· '+s.phone:''}</p>
+                  ${s.gstin?`<p style="font-size:9px;font-weight:700;color:#000080;margin-top:2px;">GSTIN: ${s.gstin}</p>`:''}
+                </div>
+                <div style="text-align:right;">
+                  <h2 style="font-size:32px;font-weight:900;color:#000080;letter-spacing:0.05em;">INVOICE</h2>
+                  <div style="font-size:12px;font-weight:700;color:#333;margin-top:4px;">#${inv.id}</div>
+                  <div style="font-size:10px;color:#666;margin-top:2px;">${inv.date}</div>
+                </div>
+              </div>
+            </div>`;
+            tableHeadStyles = 'background:#000080;color:white;font-size:11px;font-weight:700;text-transform:uppercase;';
+            totalStyles = 'color:#000080;font-weight:900;';
+            billToStyle = 'border:1px solid #ddd;border-radius:6px;padding:12px;';
+            summaryBoxStyle = 'border-top:3px solid #FF9933;padding-top:12px;';
+            logoHtml = '';
+        }
+        if(tpl === 'grunge') {
+            // Distressed orange & black grunge
+            wrapperStyle = `background-image:url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-color:white;`;
+            headerStyles = `<div style="background:#1a1a1a;margin:-8mm -10mm 20px;padding:16px;position:relative;">
+              <div style="position:absolute;inset:0;opacity:0.05;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:10px 10px;"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;position:relative;">
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="color:#e05c00;font-size:18px;">★</span>
+                    <h1 style="font-size:18px;font-weight:900;color:white;text-transform:uppercase;letter-spacing:0.08em;">${s.businessName}</h1>
+                    <span style="color:#e05c00;font-size:18px;">★</span>
+                  </div>
+                  <p style="color:#999;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;">${s.address||''}</p>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:#e05c00;font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;">★ INVOICE ★</div>
+                  <div style="color:#ccc;font-size:9px;margin-top:4px;">#${inv.id} · ${inv.date}</div>
+                </div>
+              </div>
+            </div>`;
+            tableHeadStyles = 'background:#e05c00;color:white;text-transform:uppercase;font-size:10px;font-weight:700;letter-spacing:0.1em;';
+            totalStyles = 'color:#e05c00;font-weight:900;';
+            billToStyle = 'border:2px dashed #e05c00;padding:10px 14px;border-radius:4px;';
+            summaryBoxStyle = 'border-top:2px dashed #1a1a1a;padding-top:12px;';
+            logoHtml = '';
+        }
+        if(tpl === 'sidebar-red') {
+            // Rotated left sidebar with red accent
+            wrapperStyle = 'background:white;position:relative;padding-left:32px;';
+            headerStyles = `<div style="position:absolute;left:0;top:-8mm;bottom:-8mm;width:24px;background:#dc2626;display:flex;align-items:center;justify-content:center;">
+              <span style="color:white;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.2em;writing-mode:vertical-rl;transform:rotate(180deg);">Invoice ${inv.id}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px;border-bottom:2px solid #dc2626;">
+              <div>${s.logo?`<img src="${s.logo}" style="height:44px;object-fit:contain;display:block;margin-bottom:6px;">`:''}
+                <h1 style="font-size:20px;font-weight:700;color:#dc2626;">${s.businessName}</h1>
+                <p style="font-size:10px;color:#555;margin-top:3px;">${s.address||''}</p>
+                ${s.gstin?`<p style="font-size:9px;font-weight:700;color:#333;margin-top:2px;">GSTIN: ${s.gstin}</p>`:''}
+              </div>
+              <div style="text-align:right;">
+                <div style="background:#dc2626;color:white;padding:6px 14px;border-radius:0;font-size:16px;font-weight:700;">INVOICE</div>
+                <div style="font-size:11px;color:#666;margin-top:6px;">Date: ${inv.date}</div>
+                ${s.phone?`<div style="font-size:10px;color:#666;">📞 ${s.phone}</div>`:''}
+              </div>
+            </div>`;
+            tableHeadStyles = 'background:#dc2626;color:white;font-size:11px;font-weight:700;';
+            totalStyles = 'color:#dc2626;font-weight:900;';
+            billToStyle = 'border-left:4px solid #dc2626;padding:10px 14px;background:#fef2f2;';
+            summaryBoxStyle = 'border:1px solid #fecaca;background:#fff5f5;border-radius:6px;padding:12px;';
+            logoHtml = '';
+        }
+        if(tpl === 'waterwave') {
+            // Teal/blue watercolor wave background
+            wrapperStyle = 'background:white;position:relative;overflow:hidden;';
+            headerStyles = `<div style="position:absolute;top:0;left:0;right:0;height:180px;pointer-events:none;z-index:0;">
+              <svg viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;opacity:0.18;">
+                <path d="M0,60 C200,120 400,0 600,80 C700,120 750,60 800,80 L800,0 L0,0 Z" fill="#0891b2"/>
+                <path d="M0,100 C150,60 350,140 550,80 C650,50 750,100 800,70 L800,0 L0,0 Z" fill="#0e7490"/>
+                <path d="M0,140 C100,100 300,160 500,120 C650,90 750,140 800,110 L800,0 L0,0 Z" fill="#22d3ee" opacity="0.5"/>
+              </svg>
+            </div>
+            <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;margin-bottom:24px;">
+              <div>${s.logo?`<img src="${s.logo}" style="height:44px;object-fit:contain;display:block;margin-bottom:6px;">`:''}
+                <h1 style="font-size:22px;font-weight:900;color:#0c4a6e;letter-spacing:-0.01em;">${s.businessName}</h1>
+                <p style="font-size:10px;color:#0369a1;margin-top:4px;">${s.address||''} ${s.phone?'· '+s.phone:''}</p>
+                ${s.gstin?`<p style="font-size:9px;font-weight:700;color:#0c4a6e;margin-top:2px;">GSTIN: ${s.gstin}</p>`:''}
+              </div>
+              <div style="text-align:right;">
+                <h2 style="font-size:30px;font-weight:900;color:#0c4a6e;text-transform:uppercase;letter-spacing:0.1em;">INVOICE</h2>
+                <div style="font-size:11px;color:#0369a1;font-weight:700;margin-top:4px;">#${inv.id}</div>
+                <div style="font-size:10px;color:#64748b;margin-top:2px;">${inv.date}</div>
+              </div>
+            </div>`;
+            tableHeadStyles = 'background:linear-gradient(90deg,#0369a1,#0891b2);color:white;font-size:11px;font-weight:700;text-transform:uppercase;';
+            totalStyles = 'color:#0369a1;font-weight:900;';
+            billToStyle = 'border:1.5px solid #bae6fd;background:#f0f9ff;border-radius:8px;padding:12px 14px;';
+            summaryBoxStyle = 'border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;padding:12px;';
+            logoHtml = '';
+        }
+        if(tpl === 'vintage') {
+            // Aged parchment antique style
+            wrapperStyle = `background:#f5e6c8;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");border:2px solid #8B6914;`;
+            fontClass = 'font-serif';
+            headerStyles = `<div style="text-align:center;border-bottom:2px solid #8B6914;padding-bottom:20px;margin-bottom:24px;">
+              <div style="font-size:11px;color:#8B6914;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:6px;">~ ✦ ~</div>
+              <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg" style="width:80%;opacity:0.5;display:block;margin:0 auto 8px;">
+                <path d="M0,10 Q25,2 50,10 Q75,18 100,10 Q125,2 150,10 Q175,18 200,10" stroke="#8B6914" stroke-width="1" fill="none"/>
+              </svg>
+              <h1 style="font-size:22px;font-weight:700;color:#3d2b00;letter-spacing:0.05em;">${s.businessName}</h1>
+              <p style="font-size:10px;color:#6b4c11;margin-top:4px;font-style:italic;">${s.address||''}</p>
+              <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg" style="width:80%;opacity:0.5;display:block;margin:8px auto 0;">
+                <path d="M0,10 Q25,2 50,10 Q75,18 100,10 Q125,2 150,10 Q175,18 200,10" stroke="#8B6914" stroke-width="1" fill="none"/>
+              </svg>
+              <div style="font-size:9px;color:#8B6914;letter-spacing:0.3em;text-transform:uppercase;margin-top:6px;">~ ✦ ~</div>
+            </div>`;
+            tableHeadStyles = 'border-top:2px solid #8B6914;border-bottom:2px solid #8B6914;color:#3d2b00;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;background:#eedcaa;';
+            totalStyles = 'color:#3d2b00;font-weight:900;';
+            billToStyle = 'border:1px solid #8B6914;border-radius:2px;padding:12px;background:#fef9ee;font-style:italic;';
+            summaryBoxStyle = 'border-top:2px solid #8B6914;padding-top:14px;';
             logoHtml = '';
         }
 
@@ -4845,12 +5079,13 @@ var _settingsModals = {
       var s = (window.AppState && window.AppState.settings) || {};
       var tpl = s.template||'modern';
       var terms = (s.customTerms||'').replace(/"/g,'&quot;');
-      var tpls = ['modern','classic','minimal','compact','elegant','bold','nature','corporate','ayurveda','premium'];
+      var tpls = ['modern','classic','minimal','compact','elegant','bold','nature','corporate','ayurveda','premium','tricolor','grunge','sidebar-red','waterwave','vintage'];
+      var tplLabels = {modern:'Modern',classic:'Classic',minimal:'Minimal',compact:'Compact',elegant:'Elegant',bold:'Bold',nature:'🌿 Nature',corporate:'Corporate',ayurveda:'🌿 Ayurveda',premium:'⭐ Premium',tricolor:'🇮🇳 Tricolor',grunge:'🔥 Grunge','sidebar-red':'📋 Sidebar',waterwave:'🌊 WaveFlow',vintage:'📜 Vintage'};
       return `<div class="space-y-4">
         <div><label class="lbl">Footer / T&C</label><textarea id="smod-biz-terms" rows="3" class="inp text-sm resize-none" placeholder="Thank you...">${s.customTerms||''}</textarea></div>
         <div><label class="lbl">PDF Template</label>
           <div class="grid grid-cols-2 gap-2 mt-1">
-            ${tpls.map(t => `<button type="button" onclick="window.setTemplate&&setTemplate('${t}');document.querySelectorAll('.smod-tpl-btn').forEach(function(b){b.style.borderColor='';b.style.background='';b.style.color=''});this.style.borderColor='#10b981';this.style.background='#ecfdf5';this.style.color='#065f46'" class="smod-tpl-btn p-2.5 border-2 rounded-xl text-center text-sm font-bold text-slate-700 transition-all border-slate-200 ${t===tpl?'border-emerald-400 bg-emerald-50 text-emerald-800':''}" style="${t===tpl?'border-color:#10b981;background:#ecfdf5;color:#065f46':''}">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('')}
+            ${tpls.map(t => `<button type="button" onclick="window.setTemplate&&setTemplate('${t}');document.querySelectorAll('.smod-tpl-btn').forEach(function(b){b.style.borderColor='';b.style.background='';b.style.color=''});this.style.borderColor='#10b981';this.style.background='#ecfdf5';this.style.color='#065f46'" class="smod-tpl-btn p-2.5 border-2 rounded-xl text-center text-sm font-bold text-slate-700 transition-all border-slate-200 ${t===tpl?'border-emerald-400 bg-emerald-50 text-emerald-800':''}" style="${t===tpl?'border-color:#10b981;background:#ecfdf5;color:#065f46':''}">${tplLabels[t]||t}</button>`).join('')}
           </div>
         </div>
       </div>`;
@@ -4994,6 +5229,8 @@ window.generateAIReport = function() {
   // Embedded JSON data
   var reportData = { bizName, period: period.label, generatedAt: now, revenue: rev, expenses: exp, profit, tax, paid, unpaid, invoiceCount: invs.length, clientCount: clientSet.length, topProducts: topProds, paymentSplit: {upi:upiAmt, cash:cashAmt, credit:creditAmt}, dailyRevenue: {labels:dayLabels,data:dayData}, expenseCategories: {labels:catLabels,data:catData} };
 
+  var greeting = (function(){ var h = new Date().getHours(); return h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'; })();
+  var ownerName = s.owner || s.businessName || 'Business Owner';
   var html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5008,6 +5245,11 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b}
 .hero p{color:#6ee7b7;font-size:.9rem;margin-top:8px}
 .badge{display:inline-block;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#6ee7b7;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin-top:12px}
 .container{max-width:1100px;margin:0 auto;padding:32px 16px}
+.intro-card{background:white;border-radius:20px;padding:28px 32px;margin-bottom:28px;box-shadow:0 4px 24px rgba(0,0,0,.07);border-left:6px solid #10b981;animation:fadeUp .4s ease both}
+.intro-card h2{font-size:1.4rem;font-weight:800;color:#064e3b;margin-bottom:8px}
+.intro-card p{color:#475569;font-size:.9rem;line-height:1.7}
+.intro-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.intro-meta span{background:#f0fdf4;color:#065f46;border:1px solid #a7f3d0;padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px}
 .stat{background:white;border-radius:16px;padding:24px 20px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.06);animation:fadeUp .5s ease both}
 .stat .val{font-size:1.6rem;font-weight:900;margin-bottom:4px}
@@ -5024,19 +5266,37 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b}
 .insight{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:14px;padding:16px;margin-bottom:12px}
 .insight .title{font-weight:800;color:#1d4ed8;font-size:.85rem;margin-bottom:4px}
 .insight p{color:#3730a3;font-size:.82rem;line-height:1.5}
+.analytics-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.analytics-table th{background:#0f172a;color:white;padding:10px 12px;text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+.analytics-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9}
+.analytics-table tr:nth-child(even) td{background:#f8fafc}
+.analytics-table tr:hover td{background:#f0fdf4}
 .footer{text-align:center;padding:32px;color:#94a3b8;font-size:.78rem}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 <div class="hero">
-  <div class="badge">🌿 My Business ERP</div>
+  <div class="badge">🌿 My Business ERP · AI Report</div>
   <h1>${bizName}</h1>
-  <p>${period.type === 'weekly' ? 'Weekly' : 'Monthly'} Business Report — ${period.label}</p>
+  <p>${period.type === 'weekly' ? 'Weekly' : 'Monthly'} Business Intelligence Report</p>
   <p style="color:#475569;font-size:.78rem;margin-top:8px">Generated: ${now}</p>
 </div>
 
 <div class="container">
+
+  <!-- Personalized Intro -->
+  <div class="intro-card">
+    <h2>👋 ${greeting}, ${ownerName}!</h2>
+    <p>Here is your <strong>${period.type === 'weekly' ? 'weekly' : 'monthly'} business performance report</strong> for <strong>${period.label}</strong>. This report covers all your invoices, expenses, client activity, and product sales during this period. Use these insights to make data-driven decisions for your Ayurvedic wellness business.</p>
+    <div class="intro-meta">
+      <span>📅 Period: ${period.label}</span>
+      <span>🧾 ${invs.length} Invoices</span>
+      <span>👥 ${clientSet.length} Active Clients</span>
+      <span>📦 ${products.length} Products</span>
+      <span>🕐 Generated: ${now}</span>
+    </div>
+  </div>
 
   <!-- KPI Stats -->
   <div class="stats">
@@ -5044,7 +5304,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b}
     <div class="stat" style="animation-delay:.1s"><div class="val red">${fmt(exp)}</div><div class="lbl">Expenses</div></div>
     <div class="stat" style="animation-delay:.15s"><div class="val ${profit>=0?'green':'red'}">${fmt(profit)}</div><div class="lbl">Net Profit</div></div>
     <div class="stat" style="animation-delay:.2s"><div class="val blue">${invs.length}</div><div class="lbl">Invoices</div></div>
-    <div class="stat" style="animation-delay:.25s"><div class="val amber">${clientSet.length}</div><div class="lbl">Clients</div></div>
+    <div class="stat" style="animation-delay:.25s"><div class="val amber">${clientSet.length}</div><div class="lbl">Unique Clients</div></div>
     <div class="stat" style="animation-delay:.3s"><div class="val purple">${fmt(tax)}</div><div class="lbl">GST Collected</div></div>
     <div class="stat" style="animation-delay:.35s"><div class="val green">${fmt(paid)}</div><div class="lbl">Collected</div></div>
     <div class="stat" style="animation-delay:.4s"><div class="val red">${fmt(unpaid)}</div><div class="lbl">Outstanding</div></div>
@@ -5077,23 +5337,47 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1e293b}
     ${topProds.map(function(p,i){ return `<div class="top-row"><span class="name">${i+1}. ${p[0]}</span><span class="qty">${p[1]} sold</span></div>`; }).join('')}
   </div>` : ''}
 
+  <!-- Client Analytics Table -->
+  ${clientSet.length > 0 ? `
+  <div class="section" style="animation-delay:.38s">
+    <h2>👥 Client Analytics</h2>
+    <div style="overflow-x:auto">
+    <table class="analytics-table">
+      <thead><tr><th>#</th><th>Client Name</th><th>Invoices</th><th>Total Billed</th><th>Status</th></tr></thead>
+      <tbody>
+        ${clientSet.map(function(name,i){
+          var cInvs = invs.filter(function(x){ return x.client&&x.client.name===name; });
+          var cTotal = cInvs.reduce(function(s,x){ return s+Number(x.grandTotal||0); },0);
+          var hasPending = cInvs.some(function(x){ return x.paymentStatus!=='paid'; });
+          return `<tr><td>${i+1}</td><td><strong>${name}</strong></td><td>${cInvs.length}</td><td><strong>${fmt(cTotal)}</strong></td><td><span style="background:${hasPending?'#fef3c7':'#dcfce7'};color:${hasPending?'#92400e':'#166534'};padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700">${hasPending?'⏳ Pending':'✅ Clear'}</span></td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>` : ''}
+
   <!-- Insights -->
   <div class="section" style="animation-delay:.4s">
-    <h2>💡 Key Insights</h2>
-    ${profit >= 0 ? `<div class="insight"><div class="title">✅ Profitable Period</div><p>Net profit of ${fmt(profit)} — margin ${rev>0?((profit/rev)*100).toFixed(1):0}% on revenue of ${fmt(rev)}.</p></div>` : `<div class="insight" style="background:linear-gradient(135deg,#fef2f2,#fee2e2);border-color:#fecaca"><div class="title" style="color:#dc2626">⚠️ Loss Period</div><p style="color:#991b1b">Expenses exceeded revenue by ${fmt(Math.abs(profit))}. Review expense categories.</p></div>`}
-    ${unpaid > 0 ? `<div class="insight"><div class="title">📋 Outstanding Dues</div><p>${fmt(unpaid)} pending collection from ${invs.filter(function(i){ return i.paymentStatus!=='paid'; }).length} unpaid invoices.</p></div>` : ''}
-    ${topProds.length > 0 ? `<div class="insight"><div class="title">⭐ Best Seller</div><p>${topProds[0][0]} was your top product with ${topProds[0][1]} units sold.</p></div>` : ''}
+    <h2>💡 Key Business Insights</h2>
+    ${profit >= 0 ? `<div class="insight"><div class="title">✅ Profitable Period</div><p>Net profit of ${fmt(profit)} with a ${rev>0?((profit/rev)*100).toFixed(1):0}% margin on revenue of ${fmt(rev)}. Keep up the momentum!</p></div>` : `<div class="insight" style="background:linear-gradient(135deg,#fef2f2,#fee2e2);border-color:#fecaca"><div class="title" style="color:#dc2626">⚠️ Loss Period</div><p style="color:#991b1b">Expenses exceeded revenue by ${fmt(Math.abs(profit))}. Consider reviewing your expense categories and boosting sales.</p></div>`}
+    ${unpaid > 0 ? `<div class="insight"><div class="title">📋 Follow Up on Dues</div><p>${fmt(unpaid)} is pending from ${invs.filter(function(i){ return i.paymentStatus!=='paid'; }).length} unpaid invoices. Send reminders to recover outstanding payments.</p></div>` : `<div class="insight"><div class="title">🎉 Zero Outstanding!</div><p>All invoices for this period have been collected. Excellent cash flow management!</p></div>`}
+    ${topProds.length > 0 ? `<div class="insight"><div class="title">⭐ Star Product</div><p><strong>${topProds[0][0]}</strong> was your best seller with <strong>${topProds[0][1]} units</strong> sold. Consider stocking up before next period.</p></div>` : ''}
+    ${clientSet.length > 0 ? `<div class="insight"><div class="title">👑 Best Client</div><p>Your most active client this period generated the highest business value. Focus on retention and upselling to your top clients.</p></div>` : ''}
+    <div class="insight"><div class="title">📊 Average Invoice Value</div><p>Your average invoice value was <strong>${invs.length>0?fmt(rev/invs.length):fmt(0)}</strong> this period. Increasing this through upselling can significantly boost revenue without acquiring new clients.</p></div>
   </div>
 
   <!-- Embedded JSON data -->
   <div class="section" style="animation-delay:.45s">
-    <h2>🗄️ Raw Data (JSON)</h2>
+    <h2>🗄️ Embedded Data (JSON)</h2>
     <pre style="background:#0f172a;color:#6ee7b7;padding:16px;border-radius:12px;overflow-x:auto;font-size:.72rem;max-height:200px;overflow-y:auto">${JSON.stringify(reportData, null, 2)}</pre>
   </div>
 
 </div>
 
-<div class="footer">Generated by My Business ERP · ${now} · Confidential</div>
+<div class="footer">
+  <p>Generated by <strong>${bizName}</strong> ERP · My Business Pro · ${now}</p>
+  <p style="margin-top:4px;color:#cbd5e1">This report is confidential and intended for internal business use only.</p>
+</div>
 
 <script>
 var data = ${JSON.stringify(reportData)};
