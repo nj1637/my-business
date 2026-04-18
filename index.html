@@ -13293,5 +13293,686 @@ console.log('Final fixes loaded ✅');
 
 })();
 </script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  MY BUSINESS ERP — VOICE + SAAS + OMNIBOX ENGINE  v1.0
+ *  Pure JS · No LLM · SpeechRecognition + SpeechSynthesis State Machine
+ *  Integrated directly into index.html
+ * ═══════════════════════════════════════════════════════════════════════════ */
+(function(global){
+'use strict';
+
+/* ─── UTIL ──────────────────────────────────────────────────────────────── */
+function onAppReady(cb){
+  var t=setInterval(function(){
+    if(global.AppState&&global.AppState.user&&global.AppState.user.uid){clearInterval(t);cb();}
+  },300);
+}
+function speak(text,onEnd){
+  if(!global.speechSynthesis)return onEnd&&onEnd();
+  global.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(text);
+  u.lang='hi-IN';u.rate=1.05;u.pitch=1.0;
+  var voices=global.speechSynthesis.getVoices();
+  var pref=voices.find(function(v){return v.lang==='hi-IN'||v.lang==='en-IN';})||voices[0];
+  if(pref)u.voice=pref;
+  u.onend=function(){onEnd&&onEnd();};
+  global.speechSynthesis.speak(u);
+}
+function fuzzyMatch(a,b){
+  a=(a||'').toLowerCase().trim();b=(b||'').toLowerCase().trim();
+  if(b.includes(a)||a.includes(b))return true;
+  return a.split(/\s+/).some(function(w){return w.length>2&&b.includes(w);});
+}
+function toast(msg,type){if(global.showToast)global.showToast(msg,type||'info');}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 1. SAAS ENGINE
+ * ═══════════════════════════════════════════════════════════════════════════ */
+var SAAS=(function(){
+  var TIERS={
+    free_trial:{label:'Free',invoiceLimit:30,features:{analytics:false,unlimitedInvoices:false,employees:2,bulkPDF:false,voice:true,omnibox:true,recurring:false}},
+    pro:{label:'Pro',invoiceLimit:Infinity,priceMonthly:499,features:{analytics:true,unlimitedInvoices:true,employees:10,bulkPDF:true,voice:true,omnibox:true,recurring:true}},
+    enterprise:{label:'Elite',invoiceLimit:Infinity,priceMonthly:1499,features:{analytics:true,unlimitedInvoices:true,employees:Infinity,bulkPDF:true,voice:true,omnibox:true,recurring:true,whiteLabel:true,prioritySupport:true}}
+  };
+  var _sub=null;
+  function _buildFree(){return{tier:'free_trial',status:'active',invoiceCount:0,features:TIERS.free_trial.features,expiresAt:null};}
+  function load(uid,db){
+    if(!db||!uid)return Promise.resolve(_sub=_buildFree());
+    return db.collection('subscriptions').doc(uid).get().then(function(snap){
+      if(!snap.exists){_sub=_buildFree();return _sub;}
+      var d=snap.data();
+      var now=Date.now(),exp=d.expiresAt?d.expiresAt.toMillis():0;
+      if(d.status==='active'&&exp>0&&exp<now){d.status='expired';snap.ref.update({status:'expired'});}
+      _sub=Object.assign({},d,{features:Object.assign({},TIERS[d.tier]?TIERS[d.tier].features:TIERS.free_trial.features,d.features||{})});
+      return _sub;
+    }).catch(function(){_sub=_buildFree();return _sub;});
+  }
+  function current(){return _sub||_buildFree();}
+  function can(feature){
+    var sub=current();
+    if(sub.status!=='active')return TIERS.free_trial.features[feature]===true;
+    var val=sub.features[feature];
+    return val===true?true:(val===false||val===undefined?false:val);
+  }
+  function canCreateInvoice(){
+    if(can('unlimitedInvoices'))return Promise.resolve(true);
+    var invoices=(global.AppState&&global.AppState.invoices)||[];
+    var now=new Date(),ms=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+    var count=invoices.filter(function(i){return i.createdAt>=ms&&i.status==='final';}).length;
+    var limit=TIERS[current().tier]?TIERS[current().tier].invoiceLimit:30;
+    return Promise.resolve(count<limit);
+  }
+  function promptUpgrade(reason){
+    var m=document.getElementById('saas-upgrade-modal');if(!m)return;
+    var r=document.getElementById('saas-upgrade-reason');if(r)r.textContent=reason||'Upgrade to unlock premium features.';
+    m.classList.add('open');
+  }
+  return{TIERS,load,current,can,canCreateInvoice,promptUpgrade};
+})();
+global.SAAS=SAAS;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 2. VOICE ENGINE — Rule-Based State Machine
+ * ═══════════════════════════════════════════════════════════════════════════ */
+var VOICE=(function(){
+  var STATES={IDLE:'IDLE',LISTENING:'LISTENING',INV_CLIENT:'INV_CLIENT',INV_ITEM:'INV_ITEM',INV_QTY:'INV_QTY',INV_CONFIRM:'INV_CONFIRM',CRM_LOOKUP:'CRM_LOOKUP',CRM_CONFIRM:'CRM_CONFIRM',STOCK_ITEM:'STOCK_ITEM',GST_AMOUNT:'GST_AMOUNT',GST_RATE:'GST_RATE'};
+  var _state=STATES.IDLE,_context={},_recognition=null,_isListening=false;
+
+  var INTENT_MAP=[
+    {p:/\b(new invoice|create invoice|naya bill|bill banao|invoice banao|invoice generate|invoice bana)\b/i,i:'START_INVOICE'},
+    {p:/\b(client check|client dhundo|check client|client balance|purana client|client dekho)\b/i,i:'CRM_CHECK'},
+    {p:/\b(check stock|stock check|kitna stock|stock dekho|inventory check|stock hai|stock batao)\b/i,i:'STOCK_CHECK'},
+    {p:/\b(aaj ki report|today report|daily report|sales report|show report|report dikhao)\b/i,i:'DAILY_REPORT'},
+    {p:/\b(gst calculate|gst nikalo|tax calculate|calculate tax|gst batao)\b/i,i:'GST_CALC'},
+    {p:/\b(go to dashboard|dashboard kholo|dashboard|home)\b/i,i:'NAV_DASHBOARD'},
+    {p:/\b(go to invoice|invoice tab|naya invoice tab)\b/i,i:'NAV_INVOICE'},
+    {p:/\b(go to inventory|inventory tab|inventory kholo)\b/i,i:'NAV_INVENTORY'},
+    {p:/\b(go to clients|clients tab|crm)\b/i,i:'NAV_CRM'},
+    {p:/\b(go to expenses|expenses tab)\b/i,i:'NAV_EXPENSE'},
+    {p:/\b(go to settings|settings tab)\b/i,i:'NAV_SETTINGS'},
+    {p:/\b(cancel|band karo|stop|rukja|chhodo)\b/i,i:'CANCEL'},
+    {p:/\b(save karo|save|finalize|confirm karo|ho gaya|done|bas)\b/i,i:'SAVE'},
+  ];
+
+  function detectIntent(t){
+    for(var k=0;k<INTENT_MAP.length;k++){if(INTENT_MAP[k].p.test(t))return INTENT_MAP[k].i;}
+    return 'UNKNOWN';
+  }
+
+  function initRec(){
+    var SR=global.SpeechRecognition||global.webkitSpeechRecognition;
+    if(!SR){toast('Voice not supported on this browser','error');return null;}
+    var r=new SR();
+    r.continuous=false;r.interimResults=true;r.lang='hi-IN';
+    r.onstart=function(){_isListening=true;_updateFAB(true);_setStatus('Listening...');};
+    r.onend=function(){_isListening=false;_updateFAB(false);_setStatus(_state!==STATES.IDLE?'Tap mic to continue':'Tap mic to speak');};
+    r.onerror=function(e){_isListening=false;_updateFAB(false);if(e.error!=='no-speech'&&e.error!=='aborted')toast('Voice error: '+e.error,'error');};
+    r.onresult=function(e){
+      var interim='',final='';
+      for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+      if(interim)_setTranscript(interim,false);
+      if(final){_setTranscript(final,true);_dispatch(final.trim().toLowerCase());}
+    };
+    return r;
+  }
+
+  function _dispatch(t){
+    if(/\b(cancel|band karo|stop|rukja|chhodo)\b/i.test(t))return _reset('Okay, cancelled.');
+    switch(_state){
+      case STATES.IDLE:case STATES.LISTENING:_routeIdle(t);break;
+      case STATES.INV_CLIENT:_invFlow.onClient(t);break;
+      case STATES.INV_ITEM:_invFlow.onItem(t);break;
+      case STATES.INV_QTY:_invFlow.onQty(t);break;
+      case STATES.INV_CONFIRM:_invFlow.onConfirm(t);break;
+      case STATES.CRM_LOOKUP:_crmFlow.onLookup(t);break;
+      case STATES.CRM_CONFIRM:_crmFlow.onConfirm(t);break;
+      case STATES.STOCK_ITEM:_stockFlow.onItem(t);break;
+      case STATES.GST_AMOUNT:_gstFlow.onAmount(t);break;
+      case STATES.GST_RATE:_gstFlow.onRate(t);break;
+      default:_reset('Samajh nahi aaya. Phir se boliye.');
+    }
+  }
+
+  function _routeIdle(t){
+    var intent=detectIntent(t);
+    switch(intent){
+      case 'START_INVOICE':_invFlow.start();break;
+      case 'CRM_CHECK':_crmFlow.start();break;
+      case 'STOCK_CHECK':_stockFlow.start();break;
+      case 'DAILY_REPORT':_reportFlow.run();break;
+      case 'GST_CALC':_gstFlow.start();break;
+      case 'NAV_DASHBOARD':_nav('dashboard');break;
+      case 'NAV_INVOICE':_nav('invoice');break;
+      case 'NAV_INVENTORY':_nav('inventory');break;
+      case 'NAV_CRM':_nav('clients');break;
+      case 'NAV_EXPENSE':_nav('expenses');break;
+      case 'NAV_SETTINGS':_nav('settings');break;
+      default:OMNIBOX.search(t);speak('Searching for: '+t);
+    }
+  }
+
+  function _nav(tab){if(global.switchTab){global.switchTab(tab);speak(tab+' tab khol raha hoon.');}}
+
+  function _reset(msg){
+    _state=STATES.IDLE;_context={};
+    _setStatus('Tap mic to speak');_setPrompt('Say a command...');
+    _closePanel();if(msg)speak(msg);
+  }
+
+  /* ── INVOICE FLOW ── */
+  var _invFlow={
+    start:function(){
+      SAAS.canCreateInvoice().then(function(ok){
+        if(!ok){speak('Free limit khatam. Pro plan lena padega.');SAAS.promptUpgrade('Free plan: 30 invoices/month. Upgrade for unlimited.');return;}
+        _state=STATES.INV_CLIENT;_context={items:[]};
+        _openPanel('Invoice Mode');speak('Client ka naam boliye.');_setPrompt('🧑 Client ka naam boliye...');
+        if(global.switchTab)global.switchTab('invoice');
+      });
+    },
+    onClient:function(t){
+      var clients=(global.AppState&&global.AppState.clients)||[];
+      var found=clients.find(function(c){return fuzzyMatch(t,c.name);});
+      if(found){
+        _context.client={name:found.name,mobile:found.mobile||'',gstin:found.gstin||'',address:found.address||''};
+        _fillClient(found);
+        var bal=_pendingBal(found);
+        var msg='Client mila: '+found.name+'.';
+        if(bal>0)msg+=' Pending balance: ₹'+_fmt(bal)+'.';
+        msg+=' Item ka naam boliye.';
+        speak(msg);
+      }else{
+        _context.client={name:_titleCase(t),mobile:'',gstin:'',address:''};
+        _fillClient(_context.client);
+        speak('Naya client '+_context.client.name+'. Item ka naam boliye.');
+      }
+      _state=STATES.INV_ITEM;_setPrompt('📦 Item ya service ka naam boliye...');
+    },
+    onItem:function(t){
+      if(/\b(done|ho gaya|bas|finish|save|finalize|confirm)\b/i.test(t))return this.onConfirm('yes');
+      var all=((global.AppState&&global.AppState.products)||[]).concat((global.AppState&&global.AppState.services)||[]);
+      var found=all.find(function(p){return!p.isDeleted&&fuzzyMatch(t,p.name);});
+      if(found){_context._pi=found;_state=STATES.INV_QTY;speak(found.name+' mila. Kitni quantity chahiye?');_setPrompt('🔢 Quantity boliye...');}
+      else{speak('Item nahi mila. Dobara boliye.');_setPrompt('📦 Item ka naam phir boliye...');}
+    },
+    onQty:function(t){
+      var qty=_num(t);if(!qty){speak('Quantity samajh nahi aaya.');return;}
+      var item=_context._pi;if(!item){speak('Pehle item boliye.');_state=STATES.INV_ITEM;return;}
+      var li={name:item.name,qty:qty,rate:item.rate||0,gst:item.gst||0,hsn:item.hsn||'',total:qty*(item.rate||0)};
+      _context.items.push(li);_addItem(li);
+      var sub=_context.items.reduce(function(s,i){return s+i.total;},0);
+      speak(qty+' '+item.name+' add kiya. Subtotal ₹'+_fmt(sub)+'. Aur item boliye ya "save" boliye.');
+      _state=STATES.INV_ITEM;_context._pi=null;_setPrompt('📦 Aur item boliye ya "save" boliye...');
+    },
+    onConfirm:function(t){
+      if(/\b(yes|haan|ha|confirm|save|ok|theek)\b/i.test(t)){
+        var btn=document.getElementById('btn-finalize')||document.getElementById('btn-save-invoice')||document.querySelector('[onclick*="finalizeInvoice"],[onclick*="saveInvoice"]');
+        if(btn)btn.click();else if(global.finalizeInvoice)global.finalizeInvoice();
+        speak('Invoice save ho raha hai.');_reset();
+      }else{_state=STATES.INV_ITEM;speak('Ok, aur item add karo.');}
+    }
+  };
+
+  /* ── CRM FLOW ── */
+  var _crmFlow={
+    start:function(){_state=STATES.CRM_LOOKUP;_openPanel('CRM Lookup');speak('Client ka naam boliye.');_setPrompt('🔍 Client ka naam boliye...');},
+    onLookup:function(t){
+      var clients=(global.AppState&&global.AppState.clients)||[];
+      var matches=clients.filter(function(c){return!c.isDeleted&&fuzzyMatch(t,c.name);});
+      if(!matches.length){speak('"'+t+'" naam ka koi client nahi mila.');_reset();return;}
+      var c=matches[0];
+      var bal=_pendingBal(c);
+      var cnt=(global.AppState.invoices||[]).filter(function(i){return i.client&&i.client.name===c.name;}).length;
+      speak(c.name+' ka record mila. '+cnt+' invoices. '+(bal>0?'Pending ₹'+_fmt(bal)+'.':'Koi pending nahi.')+' Naya invoice banana hai?');
+      _context.crmClient=c;_state=STATES.CRM_CONFIRM;_setPrompt('💬 "Haan" — naya invoice, "Nahi" — cancel');
+      if(global.switchTab)global.switchTab('clients');
+    },
+    onConfirm:function(t){
+      if(/\b(yes|haan|ha|invoice|bill)\b/i.test(t)&&_context.crmClient){
+        _context.client=_context.crmClient;_context.items=[];
+        if(global.switchTab)global.switchTab('invoice');
+        _fillClient(_context.crmClient);
+        speak('Invoice tab mein client fill kar diya. Item ka naam boliye.');
+        _state=STATES.INV_ITEM;_setPrompt('📦 Item ka naam boliye...');
+      }else{_reset('Okay.');}
+    }
+  };
+
+  /* ── STOCK FLOW ── */
+  var _stockFlow={
+    start:function(){_state=STATES.STOCK_ITEM;_openPanel('Stock Check');speak('Kaunsa item ka stock check karna hai?');_setPrompt('📦 Item ka naam boliye...');},
+    onItem:function(t){
+      var products=(global.AppState&&global.AppState.products)||[];
+      var matches=products.filter(function(p){return!p.isDeleted&&fuzzyMatch(t,p.name);});
+      if(!matches.length){speak('"'+t+'" nahi mila.');_reset();return;}
+      var msg=matches.slice(0,3).map(function(p){return p.name+': '+(p.stock||0)+' units'+(p.stock<=5?' — LOW STOCK':'');}).join('. ');
+      speak(msg);
+      if(global.switchTab)global.switchTab('inventory');
+      var el=document.getElementById('inv-search')||document.getElementById('search-inventory');
+      if(el){el.value=matches[0].name;el.dispatchEvent(new Event('input'));}
+      _reset();
+    }
+  };
+
+  /* ── REPORT FLOW ── */
+  var _reportFlow={
+    run:function(){
+      if(!SAAS.can('analytics')){speak('Analytics Pro plan mein available hai.');SAAS.promptUpgrade('Daily Report requires Pro plan.');return;}
+      var today=new Date().toISOString().slice(0,10);
+      var inv=(global.AppState&&global.AppState.invoices)||[];
+      var todayInv=inv.filter(function(i){return i.date===today&&i.status==='final';});
+      var total=todayInv.reduce(function(s,i){return s+(i.grandTotal||0);},0);
+      var paid=todayInv.filter(function(i){return i.paymentStatus==='paid';}).reduce(function(s,i){return s+(i.grandTotal||0);},0);
+      speak('Aaj ki report: '+todayInv.length+' bill. Total sales ₹'+_fmt(total)+'. Received ₹'+_fmt(paid)+'. Pending ₹'+_fmt(total-paid)+'.');
+      toast('📊 '+todayInv.length+' bills | ₹'+_fmt(total)+' sales today');
+      if(global.switchTab)global.switchTab('dashboard');
+      _reset();
+    }
+  };
+
+  /* ── GST FLOW ── */
+  var _gstFlow={
+    start:function(){_state=STATES.GST_AMOUNT;_openPanel('GST Calculator');speak('Amount boliye.');_setPrompt('💰 Amount boliye...');},
+    onAmount:function(t){var a=_num(t);if(!a){speak('Amount samajh nahi aaya.');return;}_context.gstAmt=a;_state=STATES.GST_RATE;speak('GST rate kya hai? 5, 12, 18 ya 28?');_setPrompt('📊 GST rate boliye (5/12/18/28)...');},
+    onRate:function(t){
+      var r=_num(t);if(!r){speak('Rate samajh nahi aaya.');return;}
+      var a=_context.gstAmt,tax=(a*r)/100,total=a+tax,cgst=tax/2;
+      speak('Amount ₹'+_fmt(a)+'. GST '+r+'%: ₹'+_fmt(tax)+'. CGST ₹'+_fmt(cgst)+', SGST ₹'+_fmt(cgst)+'. Total ₹'+_fmt(total)+'.');
+      toast('GST '+r+'%: ₹'+_fmt(tax)+' | Total: ₹'+_fmt(total));
+      _reset();
+    }
+  };
+
+  /* ── HELPERS ── */
+  function _num(t){
+    var map={ek:1,do:2,teen:3,char:4,paanch:5,cheh:6,saat:7,aath:8,nau:9,das:10,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10};
+    var lo=t.toLowerCase().trim();if(map[lo])return map[lo];
+    var n=parseFloat(t.replace(/[^0-9.]/g,''));return isNaN(n)?null:n;
+  }
+  function _fmt(n){return Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});}
+  function _titleCase(s){return s.replace(/\w\S*/g,function(t){return t.charAt(0).toUpperCase()+t.slice(1);});}
+  function _pendingBal(c){
+    return((global.AppState&&global.AppState.invoices)||[])
+      .filter(function(i){return i.client&&i.client.name===c.name&&i.paymentStatus!=='paid'&&i.status==='final';})
+      .reduce(function(s,i){return s+(i.grandTotal||0);},0);
+  }
+  function _fillClient(c){
+    var m={'inv-client-name':c.name,'client-name':c.name,'inv-client-mobile':c.mobile||'','client-mobile':c.mobile||'','inv-client-gstin':c.gstin||'','inv-client-address':c.address||''};
+    Object.keys(m).forEach(function(id){var el=document.getElementById(id);if(el){el.value=m[id];el.dispatchEvent(new Event('input'));}});
+  }
+  function _addItem(item){
+    if(global.addInvoiceItem){global.addInvoiceItem(item);return;}
+    var btn=document.getElementById('btn-add-item')||document.querySelector('[onclick*="addItem"]');
+    if(btn)btn.click();
+    setTimeout(function(){
+      var rows=document.querySelectorAll('.invoice-item-row,.item-row');var last=rows[rows.length-1];if(!last)return;
+      var inp=last.querySelectorAll('input');
+      if(inp[0]){inp[0].value=item.name;inp[0].dispatchEvent(new Event('input'));}
+      if(inp[1]){inp[1].value=item.qty;inp[1].dispatchEvent(new Event('input'));}
+      if(inp[2]){inp[2].value=item.rate;inp[2].dispatchEvent(new Event('input'));}
+    },200);
+  }
+
+  /* ── PANEL UI ── */
+  function _openPanel(title){var p=document.getElementById('erp-voice-panel');if(!p)return;document.getElementById('evp-title').textContent=title||'Voice Assistant';p.classList.remove('hidden');p.classList.add('flex');}
+  function _closePanel(){var p=document.getElementById('erp-voice-panel');if(p){p.classList.add('hidden');p.classList.remove('flex');}}
+  function _setStatus(s){var el=document.getElementById('evp-status');if(el)el.textContent=s;}
+  function _setPrompt(s){var el=document.getElementById('evp-prompt');if(el)el.textContent=s;}
+  function _setTranscript(t,fin){var el=document.getElementById('evp-transcript');if(el){el.textContent=t;el.style.opacity=fin?'1':'0.5';}}
+  function _updateFAB(on){var b=document.getElementById('erp-voice-fab');if(!b)return;if(on){b.classList.add('erp-voice-active');}else{b.classList.remove('erp-voice-active');}}
+
+  /* ── PUBLIC ── */
+  function startStop(){
+    if(!_recognition)_recognition=initRec();
+    if(!_recognition)return;
+    try{if(_isListening)_recognition.stop();else _recognition.start();}catch(e){}
+  }
+  return{start:startStop,stop:function(){if(_recognition&&_isListening)_recognition.stop();},state:function(){return _state;},detectIntent:detectIntent,_reset:_reset};
+})();
+global.VOICE=VOICE;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 3. OMNIBOX ENGINE — Global Cross-Module Search
+ * ═══════════════════════════════════════════════════════════════════════════ */
+var OMNIBOX=(function(){
+  var _dtimer=null;
+  var BADGE={green:'background:#dcfce7;color:#166534',amber:'background:#fef3c7;color:#92400e',red:'background:#fee2e2;color:#991b1b',blue:'background:#dbeafe;color:#1e40af',purple:'background:#ede9fe;color:#5b21b6',slate:'background:#f1f5f9;color:#475569'};
+  var EICONS={invoice:'🧾',client:'👤',product:'📦',service:'✨',expense:'💸',nav:'⚡'};
+
+  function search(query){
+    if(!query||query.length<2){_render([]);return[];}
+    var q=query.toLowerCase().trim(),results=[],AS=global.AppState||{};
+
+    // Invoices
+    (AS.invoices||[]).forEach(function(inv){
+      var sc=0;
+      if((inv.id||'').toLowerCase().includes(q))sc+=10;
+      if(inv.client&&inv.client.name&&inv.client.name.toLowerCase().includes(q))sc+=8;
+      if(sc)results.push({type:'invoice',label:inv.id+' — '+(inv.client?inv.client.name:''),sub:'₹'+_fmt(inv.grandTotal||0)+' · '+(inv.date||'')+' · '+(inv.paymentStatus||''),badge:inv.paymentStatus==='paid'?'green':'amber',score:sc,
+        action:(function(i){return function(){if(global.switchTab)global.switchTab('records');setTimeout(function(){if(global.openInvoiceView)global.openInvoiceView(i.id);},400);};})(inv)});
+    });
+
+    // Clients
+    (AS.clients||[]).filter(function(c){return!c.isDeleted;}).forEach(function(c){
+      var sc=0;
+      if(c.name&&c.name.toLowerCase().includes(q))sc+=10;
+      if(c.mobile&&c.mobile.includes(q))sc+=8;
+      if(c.gstin&&c.gstin.toLowerCase().includes(q))sc+=6;
+      if(sc){
+        var cnt=(AS.invoices||[]).filter(function(i){return i.client&&i.client.name===c.name;}).length;
+        results.push({type:'client',label:c.name,sub:(c.mobile||'No phone')+' · '+cnt+' invoices',badge:'blue',score:sc,
+          action:(function(cl){return function(){if(global.switchTab)global.switchTab('clients');setTimeout(function(){var s=document.getElementById('client-search')||document.getElementById('search-clients');if(s){s.value=cl.name;s.dispatchEvent(new Event('input'));}},400);};})(c)});
+      }
+    });
+
+    // Products
+    (AS.products||[]).filter(function(p){return!p.isDeleted;}).forEach(function(p){
+      var sc=0;
+      if(p.name&&p.name.toLowerCase().includes(q))sc+=10;
+      if(p.category&&p.category.toLowerCase().includes(q))sc+=5;
+      if(p.hsn&&p.hsn.includes(q))sc+=4;
+      if(sc)results.push({type:'product',label:p.name,sub:(p.category||'')+' · Stock: '+(p.stock||0)+' · ₹'+(p.rate||0),badge:(p.stock||0)<=5?'red':'green',score:sc,
+        action:(function(pr){return function(){if(global.switchTab)global.switchTab('inventory');setTimeout(function(){var s=document.getElementById('inv-search')||document.getElementById('search-inventory');if(s){s.value=pr.name;s.dispatchEvent(new Event('input'));}},400);};})(p)});
+    });
+
+    // Services
+    (AS.services||[]).filter(function(s){return!s.isDeleted;}).forEach(function(s){
+      var sc=0;
+      if(s.name&&s.name.toLowerCase().includes(q))sc+=10;
+      if(s.category&&s.category.toLowerCase().includes(q))sc+=5;
+      if(sc)results.push({type:'service',label:s.name,sub:(s.category||'')+' · ₹'+(s.rate||0)+(s.duration?' · '+s.duration+' min':''),badge:'purple',score:sc,
+        action:function(){if(global.switchTab)global.switchTab('services');}});
+    });
+
+    // Expenses
+    (AS.expenses||[]).filter(function(e){return!e.isDeleted;}).forEach(function(e){
+      var sc=0;
+      if(e.description&&e.description.toLowerCase().includes(q))sc+=8;
+      if(e.category&&e.category.toLowerCase().includes(q))sc+=6;
+      if(sc)results.push({type:'expense',label:e.description||e.category,sub:(e.category||'')+' · ₹'+(e.amount||0)+' · '+(e.date||''),badge:'red',score:sc,
+        action:function(){if(global.switchTab)global.switchTab('expenses');}});
+    });
+
+    // Nav shortcuts
+    var navs=[
+      {kw:['dashboard','home','summary'],label:'Dashboard',tab:'dashboard'},
+      {kw:['invoice','bill','billing','naya invoice'],label:'New Invoice',tab:'invoice'},
+      {kw:['records','history','past'],label:'Invoice Records',tab:'records'},
+      {kw:['client','customer','crm'],label:'Clients / CRM',tab:'clients'},
+      {kw:['inventory','stock','product'],label:'Inventory',tab:'inventory'},
+      {kw:['expense','kharcha','kharche'],label:'Expenses',tab:'expenses'},
+      {kw:['gst','tax','return'],label:'GST Module',tab:'gst'},
+      {kw:['employee','staff','karmachari'],label:'Employees',tab:'employees'},
+      {kw:['settings','setting','setup'],label:'Settings',tab:'settings'},
+      {kw:['daybook','daily','roz'],label:'Daybook',tab:'daybook'},
+      {kw:['analytics','report','chart'],label:'Analytics',tab:'analytics'},
+    ];
+    navs.forEach(function(n){
+      if(n.kw.some(function(k){return k.includes(q)||q.includes(k);})){
+        results.push({type:'nav',label:'Go to '+n.label,sub:'Navigation shortcut',badge:'slate',score:3,
+          action:(function(tab){return function(){if(global.switchTab)global.switchTab(tab);};})(n.tab)});
+      }
+    });
+
+    results.sort(function(a,b){return b.score-a.score;});
+    _render(results.slice(0,12));
+    return results;
+  }
+
+  function _fmt(n){return Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});}
+  function _esc(s){return(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function _render(results){
+    var el=document.getElementById('erp-omni-results');if(!el)return;
+    if(!results.length){el.style.display='none';el.innerHTML='';return;}
+    el.style.display='block';
+    el.innerHTML=results.map(function(r,idx){
+      var bs=BADGE[r.badge]||BADGE.slate;
+      return '<div onclick="window._erp_omni_results['+idx+'].action();document.getElementById(\'erp-omni-input\').value=\'\';OMNIBOX.clearResults()" '+
+        'style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s" '+
+        'onmouseenter="this.style.background=\'#f8fafc\'" onmouseleave="this.style.background=\'\'">'+
+        '<span style="font-size:15px;flex-shrink:0">'+(EICONS[r.type]||'•')+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(r.label)+'</div>'+
+        '<div style="font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_esc(r.sub)+'</div>'+
+        '</div>'+
+        '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0;'+bs+'">'+r.type+'</span>'+
+        '</div>';
+    }).join('');
+    global._erp_omni_results=results;
+  }
+
+  function debounceSearch(q){clearTimeout(_dtimer);_dtimer=setTimeout(function(){search(q);},220);}
+  function clearResults(){var el=document.getElementById('erp-omni-results');if(el){el.style.display='none';el.innerHTML='';}global._erp_omni_results=[];}
+  return{search:search,debounceSearch:debounceSearch,clearResults:clearResults};
+})();
+global.OMNIBOX=OMNIBOX;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 4. UI INJECTION
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function _injectStyles(){
+  var s=document.createElement('style');
+  s.textContent=
+    /* Omnibox wrapper */
+    '#erp-omni-wrap{position:relative;flex:1;max-width:420px;min-width:0}'+
+    '#erp-omni-input{width:100%;height:34px;padding:0 34px 0 34px;border:1.5px solid #e2e8f0;border-radius:10px;'+
+    'font-family:inherit;font-size:13px;outline:none;background:#f8fafc;color:#0f172a;transition:border-color .15s,box-shadow .15s}'+
+    '#erp-omni-input:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1);background:#fff}'+
+    '#erp-omni-input::placeholder{color:#94a3b8}'+
+    '#erp-omni-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}'+
+    '#erp-omni-voice-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:#94a3b8;padding:3px;display:flex;transition:color .15s}'+
+    '#erp-omni-voice-icon:hover{color:#10b981}'+
+    '#erp-omni-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid #e2e8f0;'+
+    'border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:9000;max-height:380px;overflow-y:auto;display:none}'+
+    /* Voice FAB */
+    '#erp-voice-fab{width:42px;height:42px;border-radius:12px;border:none;cursor:pointer;flex-shrink:0;'+
+    'background:linear-gradient(135deg,#064e3b,#10b981);color:#fff;'+
+    'display:flex;align-items:center;justify-content:center;'+
+    'box-shadow:0 4px 12px rgba(16,185,129,.32);transition:all .15s;position:relative}'+
+    '#erp-voice-fab:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(16,185,129,.45)}'+
+    '#erp-voice-fab:active{transform:scale(.93)}'+
+    '#erp-voice-fab.erp-voice-active{background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 4px 16px rgba(220,38,38,.5);animation:erpVoicePulse 1s ease-in-out infinite}'+
+    '@keyframes erpVoicePulse{0%,100%{box-shadow:0 4px 12px rgba(220,38,38,.4)}50%{box-shadow:0 0 0 10px rgba(220,38,38,.0),0 4px 24px rgba(220,38,38,.7)}}'+
+    /* SaaS tier badge */
+    '#erp-tier-badge{font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;flex-shrink:0;letter-spacing:.04em;white-space:nowrap}'+
+    /* Voice panel */
+    '#erp-voice-panel{position:fixed;bottom:76px;right:18px;z-index:600;'+
+    'width:min(340px,calc(100vw - 36px));background:#fff;border-radius:18px;'+
+    'box-shadow:0 16px 64px rgba(0,0,0,.18);border:1px solid #e2e8f0;'+
+    'flex-direction:column;overflow:hidden}'+
+    '#erp-voice-panel.hidden{display:none!important}'+
+    '#erp-voice-panel:not(.hidden){display:flex;animation:erpPanelUp .22s ease-out}'+
+    '@keyframes erpPanelUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}'+
+    '#evp-wave{display:flex;align-items:flex-end;gap:3px;height:22px}'+
+    '#evp-wave span{width:3px;border-radius:3px;background:#10b981;animation:erpWave .9s ease-in-out infinite}'+
+    '#evp-wave span:nth-child(1){height:30%;animation-delay:.0s}#evp-wave span:nth-child(2){height:60%;animation-delay:.1s}'+
+    '#evp-wave span:nth-child(3){height:100%;animation-delay:.2s}#evp-wave span:nth-child(4){height:70%;animation-delay:.3s}'+
+    '#evp-wave span:nth-child(5){height:35%;animation-delay:.4s}'+
+    '.erp-voice-active~* #evp-wave span,.erp-voice-active+#evp-wave span{background:#ef4444}'+
+    '@keyframes erpWave{0%,100%{scaleY:.2}50%{scaleY:1}}'+
+    /* quick cmd pills */
+    '.evp-cmd{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;color:#475569;transition:all .15s}'+
+    '.evp-cmd:hover{background:#ecfdf5;color:#059669;border-color:#a7f3d0}'+
+    /* upgrade modal */
+    '#saas-upgrade-modal .modal-box{max-width:440px}'+
+    '.saas-plan-card{border:2px solid #e2e8f0;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s}'+
+    '.saas-plan-card:hover{border-color:#10b981;background:#f0fdf4}'+
+    '.saas-plan-card.ent:hover{border-color:#7c3aed;background:#faf5ff}'+
+    '.saas-plan-card.selected{border-color:#10b981;background:#f0fdf4}'+
+    '.saas-plan-card.ent.selected{border-color:#7c3aed;background:#faf5ff}';
+  document.head.appendChild(s);
+}
+
+function _injectTopbar(){
+  var topbar=document.getElementById('topbar');if(!topbar)return;
+
+  /* Omnibox */
+  var ow=document.createElement('div');ow.id='erp-omni-wrap';
+  ow.innerHTML=
+    '<svg id="erp-omni-search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'+
+    '<input id="erp-omni-input" type="text" placeholder="Search clients, invoices, products..." autocomplete="off"'+
+    ' oninput="OMNIBOX.debounceSearch(this.value)"'+
+    ' onkeydown="if(event.key===\'Escape\'){this.value=\'\';OMNIBOX.clearResults();}"'+
+    ' onfocus="if(this.value.length>1)OMNIBOX.debounceSearch(this.value)">'+
+    '<button id="erp-omni-voice-icon" title="Voice search" onclick="OMNIBOX.clearResults();VOICE.start()">'+
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">'+
+    '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/>'+
+    '<line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>'+
+    '<div id="erp-omni-results"></div>';
+
+  var pageTitle=document.getElementById('page-title');
+  if(pageTitle)pageTitle.after(ow);else topbar.appendChild(ow);
+
+  /* Voice FAB button */
+  var fab=document.createElement('button');
+  fab.id='erp-voice-fab';fab.title='Voice Assistant';
+  fab.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3">'+
+    '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>'+
+    '<path d="M19 10v2a7 7 0 0 1-14 0v-2"/>'+
+    '<line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  fab.onclick=function(){VOICE.start();};
+  topbar.appendChild(fab);
+
+  /* Tier badge */
+  var badge=document.createElement('span');
+  badge.id='erp-tier-badge';badge.textContent='Free';
+  badge.style.cssText='background:#f1f5f9;color:#64748b;font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;flex-shrink:0';
+  topbar.appendChild(badge);
+
+  /* Close omnibox on outside click */
+  document.addEventListener('click',function(e){if(!ow.contains(e.target))OMNIBOX.clearResults();});
+}
+
+function _injectVoicePanel(){
+  var p=document.createElement('div');
+  p.id='erp-voice-panel';p.className='hidden';
+  p.innerHTML=
+    '<div style="padding:13px 15px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:10px">'+
+    '<div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#064e3b,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="white" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div>'+
+    '<div style="flex:1;min-width:0">'+
+    '<div style="font-size:12px;font-weight:700;color:#0f172a" id="evp-title">Voice Assistant</div>'+
+    '<div style="font-size:10px;color:#94a3b8" id="evp-status">Tap mic to speak</div></div>'+
+    '<div id="evp-wave"><span></span><span></span><span></span><span></span><span></span></div>'+
+    '<button onclick="VOICE._reset(\'Cancelled.\');document.getElementById(\'erp-voice-panel\').classList.add(\'hidden\')" '+
+    'style="border:none;background:none;cursor:pointer;color:#94a3b8;padding:4px;display:flex;flex-shrink:0">'+
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>'+
+
+    '<div style="padding:12px 15px 6px">'+
+    '<div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Waiting for</div>'+
+    '<div style="font-size:13px;font-weight:600;color:#0f172a" id="evp-prompt">Say a command...</div></div>'+
+
+    '<div style="padding:6px 15px 13px">'+
+    '<div style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">You said</div>'+
+    '<div style="font-size:13px;color:#64748b;min-height:18px;font-style:italic" id="evp-transcript">—</div></div>'+
+
+    '<div style="padding:10px 15px;border-top:1px solid #f1f5f9;display:flex;gap:6px;flex-wrap:wrap">'+
+    ['New Invoice','Check Stock','Today Report','GST Calc','CRM Lookup'].map(function(cmd){
+      return '<button class="evp-cmd" onclick="document.getElementById(\'erp-omni-input\').value=\'\';VOICE._reset();setTimeout(function(){VOICE.start();},150)">'+cmd+'</button>';
+    }).join('')+
+    '</div>';
+  document.body.appendChild(p);
+}
+
+function _injectUpgradeModal(){
+  var m=document.createElement('div');
+  m.id='saas-upgrade-modal';m.className='modal';
+  m.setAttribute('onclick','if(event.target===this)this.classList.remove("open")');
+
+  function planCard(tier,emoji,title,price,features,color,ent){
+    return '<div class="saas-plan-card'+(ent?' ent':'')+'" '+
+      'onclick="document.querySelectorAll(\'.saas-plan-card\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\');window._erp_upgrade_tier=\''+tier+'\'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+      '<div style="font-weight:800;font-size:14px;color:#0f172a">'+emoji+' '+title+'</div>'+
+      '<div style="font-weight:700;font-size:13px;color:'+color+'">'+price+'</div></div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+      features.map(function(f){return '<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:'+(ent?'#ede9fe':'#ecfdf5')+';color:'+color+';font-weight:600">✓ '+f+'</span>';}).join('')+
+      '</div></div>';
+  }
+
+  m.innerHTML='<div class="modal-box" style="max-width:440px">'+
+    '<div class="modal-head">'+
+    '<div style="display:flex;align-items:center;gap:12px">'+
+    '<div style="width:38px;height:38px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border-radius:12px;display:flex;align-items:center;justify-content:center">'+
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2.3"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>'+
+    '<div><div style="font-weight:700;font-size:15px;color:#0f172a">Upgrade Your Plan</div>'+
+    '<div style="font-size:11px;color:#94a3b8" id="saas-upgrade-reason">Unlock premium features</div></div></div>'+
+    '<button onclick="document.getElementById(\'saas-upgrade-modal\').classList.remove(\'open\')" style="border:none;background:none;cursor:pointer;color:#94a3b8;padding:4px">'+
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>'+
+
+    '<div class="modal-body" style="display:flex;flex-direction:column;gap:12px">'+
+    planCard('pro','⚡','Pro','₹499 / month',['Unlimited invoices','Advanced analytics','Up to 10 employees','Bulk PDF export','Recurring invoices'],'#059669',false)+
+    planCard('enterprise','👑','Enterprise','₹1,499 / month',['Everything in Pro','Unlimited employees','White-label invoices','Dedicated support','Custom integrations'],'#7c3aed',true)+
+    '</div>'+
+
+    '<div class="modal-foot" style="flex-direction:column;gap:8px;align-items:stretch">'+
+    '<button onclick="SAAS._doUpgrade()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px">🚀 Upgrade Now</button>'+
+    '<p style="text-align:center;font-size:10px;color:#94a3b8;margin:0">7-day free trial · Cancel anytime · GST invoice provided</p>'+
+    '</div></div>';
+  document.body.appendChild(m);
+}
+
+SAAS._doUpgrade=function(){
+  var tier=global._erp_upgrade_tier||'pro';
+  /* ── RAZORPAY HOOK (replace with your live key) ──────────────────────
+  var prices={pro:49900,enterprise:149900};
+  var opts={
+    key:'rzp_live_YOUR_KEY',amount:prices[tier],currency:'INR',
+    name:'My Business ERP',description:tier==='pro'?'Pro Plan ₹499/mo':'Enterprise Plan',
+    handler:function(r){ _activateSub(tier,r.razorpay_payment_id); },
+    prefill:{email:(global.AppState&&global.AppState.user&&global.AppState.user.email)||''},
+    theme:{color:'#059669'}
+  };
+  new Razorpay(opts).open();
+  ───────────────────────────────────────────────────────────────────── */
+  toast('Contact us to activate '+tier+' plan — wa.me/917254991801','info');
+  document.getElementById('saas-upgrade-modal').classList.remove('open');
+};
+
+function _updateTierBadge(sub){
+  var b=document.getElementById('erp-tier-badge');if(!b)return;
+  var tier=(sub&&sub.tier)||'free_trial';
+  var map={free_trial:{t:'Free',bg:'#f1f5f9',c:'#64748b'},pro:{t:'Pro ⚡',bg:'#ecfdf5',c:'#059669'},enterprise:{t:'Elite 👑',bg:'#ede9fe',c:'#7c3aed'}};
+  var d=map[tier]||map.free_trial;
+  b.textContent=d.t;b.style.background=d.bg;b.style.color=d.c;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * BOOT
+ * ═══════════════════════════════════════════════════════════════════════════ */
+onAppReady(function(){
+  _injectStyles();
+  _injectTopbar();
+  _injectVoicePanel();
+  _injectUpgradeModal();
+
+  // Load subscription
+  var uid=global.AppState.user.uid;
+  var db=global._db||(global.firebase&&global.firebase.firestore&&global.firebase.firestore());
+  SAAS.load(uid,db).then(function(sub){
+    _updateTierBadge(sub);
+    if(sub.tier==='free_trial'){
+      var inv=global.AppState.invoices||[];
+      var now=new Date(),ms=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+      var cnt=inv.filter(function(i){return i.createdAt>=ms&&i.status==='final';}).length;
+      if(cnt>=25)toast('Free plan: '+cnt+'/30 invoices used this month','warning');
+    }
+  });
+
+  // Preload TTS voices
+  if(global.speechSynthesis){
+    global.speechSynthesis.getVoices();
+    if(global.speechSynthesis.onvoiceschanged!==undefined)
+      global.speechSynthesis.onvoiceschanged=function(){global.speechSynthesis.getVoices();};
+  }
+
+  if(global.lucide)setTimeout(function(){global.lucide.createIcons();},400);
+  console.log('%c🎙️ Voice + SaaS + Omnibox ready','color:#10b981;font-weight:bold;font-size:13px');
+});
+
+})(window);
+</script>
 </body>
 </html>
